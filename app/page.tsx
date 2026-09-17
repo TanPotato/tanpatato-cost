@@ -1,6 +1,10 @@
 import Image from "next/image";
+import Link from "next/link";
+import { Home } from "lucide-react";
 
-export default function Home() {
+import { Button } from "@/components/ui/button";
+
+export default function HomePage() {
   return (
     <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
       <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
@@ -39,6 +43,10 @@ export default function Home() {
           </p>
         </div>
         <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
+          <Button size="lg" nativeButton={false} render={<Link href="/" />}>
+            <Home data-icon="inline-start" />
+            Home
+          </Button>
           <a
             className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
             href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"

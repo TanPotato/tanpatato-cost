@@ -35,6 +35,8 @@
   --color-sec-3-soft: var(--sec-3-soft);
   --color-sec-4: var(--sec-4);
   --color-sec-4-soft: var(--sec-4-soft);
+  --color-sec-5: var(--sec-5);
+  --color-sec-5-soft: var(--sec-5-soft);
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
@@ -98,7 +100,7 @@
   --income-soft: oklch(0.96 0.022 205);
   --expense: oklch(0.56 0.135 55);
   --expense-soft: oklch(0.965 0.03 65);
-  /* 상단 탭의 네 구간. 색상환에서 55도 이상 벌리고 밝기와 채도를 맞췄다. */
+  /* 상단 탭의 다섯 구간. 색상환에서 40도 이상 벌리고 밝기와 채도를 맞췄다. */
   --sec-1: oklch(0.52 0.108 205);
   --sec-1-soft: oklch(0.955 0.024 205);
   --sec-2: oklch(0.52 0.12 265);
@@ -107,6 +109,8 @@
   --sec-3-soft: oklch(0.955 0.024 320);
   --sec-4: oklch(0.5 0.11 150);
   --sec-4-soft: oklch(0.955 0.024 150);
+  --sec-5: oklch(0.5 0.1 108);
+  --sec-5-soft: oklch(0.955 0.024 108);
 }
 
 .dark {
@@ -154,6 +158,8 @@
   --sec-3-soft: oklch(0.305 0.045 320);
   --sec-4: oklch(0.79 0.1 150);
   --sec-4-soft: oklch(0.3 0.038 150);
+  --sec-5: oklch(0.79 0.095 108);
+  --sec-5-soft: oklch(0.3 0.038 108);
 }
 
 @layer base {

@@ -5,6 +5,13 @@ import type { Category, EtfCandidate } from "./types";
  */
 export const CATEGORIES: Category[] = ["domestic-equity", "overseas-equity", "bond"];
 
+/** 카테고리를 화면에 적을 때 쓰는 이름. GLOSSARY.md의 정의와 같다. */
+export const CATEGORY_LABELS: Record<Category, string> = {
+  "domestic-equity": "국내주식형",
+  "overseas-equity": "해외주식형",
+  bond: "채권형",
+};
+
 /**
  * 후보 ETF 목록. 사람이 직접 골라 적은 정적 데이터다. 순자산규모와 총보수를
  * 기준으로 골랐고, 그 근거는 docs/decisions/etf-candidate-data.md와

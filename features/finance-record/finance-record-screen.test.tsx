@@ -80,3 +80,35 @@ test("아무것도 적지 않았으면 진단 대신 기록하러 가라고 안�
     screen.getByRole("heading", { level: 1, name: "매달 들어오고 나가는 돈" })
   ).toBeInTheDocument();
 });
+
+test("추천 탭은 항상 3종목과 비중·금액을 보여주고, 성향을 바꾸면 다시 계산된다", () => {
+  const { container } = render(<FinanceRecordScreen />);
+
+  const amounts = screen.getAllByLabelText("금액");
+  fireEvent.change(amounts[0], { target: { value: "2000000" } });
+
+  fireEvent.click(screen.getByRole("tab", { name: "추천" }));
+  expect(screen.getByText("TIGER 200")).toBeInTheDocument();
+  expect(screen.getByText("TIGER 미국S&P500")).toBeInTheDocument();
+  expect(screen.getByText("KODEX 종합채권(AA-이상)액티브")).toBeInTheDocument();
+  // 기본 성향 3단계는 상한 없이 50:50이라 국내 15% / 해외 35% / 채권 50%다.
+  expect(screen.getByText("15%", { exact: false })).toBeInTheDocument();
+
+  fireEvent.click(screen.getByRole("tab", { name: "내 상황" }));
+  const aggressive = screen.getByRole("radio", { name: /5\s*공격형/ });
+  fireEvent.click(aggressive);
+  const oneYear = screen.getByRole("button", { name: "1년" });
+  fireEvent.click(oneYear);
+
+  fireEvent.click(screen.getByRole("tab", { name: "추천" }));
+  expect(screen.getByText(/낮췄습니다/)).toBeInTheDocument();
+  expect(container.textContent).toContain("60%");
+});
+
+test("매달 남는 돈이 0원 이하면 추천 비중은 그대로 나오고 금액만 0원이다", () => {
+  render(<FinanceRecordScreen />);
+
+  fireEvent.click(screen.getByRole("tab", { name: "추천" }));
+  const amounts = screen.getAllByText("0원");
+  expect(amounts.length).toBeGreaterThanOrEqual(3);
+});

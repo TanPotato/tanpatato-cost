@@ -1,6 +1,11 @@
 import { describe, expect, test } from "vitest";
 
-import { CATEGORIES, ETF_CANDIDATES, candidatesByCategory } from "@/features/etf-candidates";
+import {
+  CATEGORIES,
+  CATEGORY_LABELS,
+  ETF_CANDIDATES,
+  candidatesByCategory,
+} from "@/features/etf-candidates";
 
 describe("ETF_CANDIDATES", () => {
   test("정확히 6개의 후보를 담는다", () => {
@@ -65,6 +70,14 @@ describe("ETF_CANDIDATES", () => {
       category: "bond",
       index: "KAP 국고채10년지수",
     });
+  });
+});
+
+describe("CATEGORY_LABELS", () => {
+  test("세 카테고리 모두 이름을 갖는다", () => {
+    for (const category of CATEGORIES) {
+      expect(CATEGORY_LABELS[category]).toBeTruthy();
+    }
   });
 });
 

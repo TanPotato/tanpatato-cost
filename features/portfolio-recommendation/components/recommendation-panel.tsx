@@ -78,10 +78,6 @@ export function RecommendationPanel({
           <Fact label="투자 가능 기간" value={formatHorizon(horizonYears, longestHorizon)} />
         </CardContent>
       </Card>
-
-      <p className="text-xs leading-relaxed text-muted-foreground">
-        실제 매수 절차 안내는 다음 단계입니다.
-      </p>
     </div>
   );
 }

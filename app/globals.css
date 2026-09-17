@@ -37,6 +37,8 @@
   --color-sec-4-soft: var(--sec-4-soft);
   --color-sec-5: var(--sec-5);
   --color-sec-5-soft: var(--sec-5-soft);
+  --color-sec-6: var(--sec-6);
+  --color-sec-6-soft: var(--sec-6-soft);
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
@@ -111,6 +113,8 @@
   --sec-4-soft: oklch(0.955 0.024 150);
   --sec-5: oklch(0.5 0.1 108);
   --sec-5-soft: oklch(0.955 0.024 108);
+  --sec-6: oklch(0.52 0.115 355);
+  --sec-6-soft: oklch(0.955 0.024 355);
 }
 
 .dark {
@@ -160,6 +164,8 @@
   --sec-4-soft: oklch(0.3 0.038 150);
   --sec-5: oklch(0.79 0.095 108);
   --sec-5-soft: oklch(0.3 0.038 108);
+  --sec-6: oklch(0.8 0.1 355);
+  --sec-6-soft: oklch(0.305 0.045 355);
 }
 
 @layer base {

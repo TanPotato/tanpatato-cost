@@ -16,8 +16,7 @@ function blankProfile(): Profile {
   return {
     age: "",
     yearsToRetirement: "",
-    household: "spouse-and-children",
-    children: [],
+    dependents: [],
     goals: [],
     horizonYears: 7,
     riskLevel: 3,

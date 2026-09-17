@@ -87,7 +87,8 @@ export function FinanceRecordScreen() {
     setRecord((current) => ({ ...current, profile: { ...current.profile, ...next } }));
   }
 
-  const heading = HEADINGS[tab];
+  // 진단할 것이 없을 때는 "환산해 계산했습니다"가 거짓말이 되므로 제목째로 비운다.
+  const heading = tab === "diagnosis" && summary.isBlank ? null : HEADINGS[tab];
 
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-5 px-4 py-6 sm:px-6">
@@ -108,12 +109,16 @@ export function FinanceRecordScreen() {
         </Tabs>
       </header>
 
-      <div className="flex flex-col gap-1.5">
-        <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">{heading.title}</h1>
-        <p className="max-w-[62ch] text-sm leading-relaxed text-muted-foreground">
-          {heading.lede}
-        </p>
-      </div>
+      {heading ? (
+        <div className="flex flex-col gap-1.5">
+          <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">
+            {heading.title}
+          </h1>
+          <p className="max-w-[62ch] text-sm leading-relaxed text-muted-foreground">
+            {heading.lede}
+          </p>
+        </div>
+      ) : null}
 
       {tab === "cashflow" ? (
         <>

@@ -13,46 +13,20 @@ import {
 } from "@/components/ui/card";
 import { Field, FieldGroup, FieldLabel, FieldSet, FieldLegend } from "@/components/ui/field";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { cn } from "@/lib/utils";
 
 import { HORIZON_CHOICES } from "../diagnose";
 import { formatHorizon, formatWon } from "../format";
+import {
+  DEPENDENT_CHOICES,
+  RISK_CHOICES,
+  describeDependents,
+  normalizeDependents,
+} from "../profile-options";
 import { nextId } from "../seed";
-import type { ChildEntry, GoalEntry, Profile, RiskLevel } from "../types";
+import type { DependentKey, GoalEntry, Profile, RiskLevel } from "../types";
 import { AmountInput, EntryRow, PlainNumberInput } from "./entry-row";
-
-const HOUSEHOLDS = [
-  { value: "alone", label: "혼자 삽니다" },
-  { value: "spouse", label: "배우자와 둘입니다" },
-  { value: "spouse-and-children", label: "배우자와 자녀가 있습니다" },
-  { value: "children", label: "자녀와 둘입니다" },
-  { value: "parents", label: "부모님을 부양합니다" },
-];
-
-export const HOUSEHOLD_LABELS = new Map(
-  HOUSEHOLDS.map((item) => [item.value, item.label] as const)
-);
-
-const RISK_LEVELS: { value: RiskLevel; title: string; description: string }[] = [
-  { value: 1, title: "1 안정형", description: "원금이 줄어드는 것은 못 견딥니다" },
-  { value: 2, title: "2 안정추구형", description: "5% 정도까지는 버팁니다" },
-  { value: 3, title: "3 중립형", description: "15% 정도까지는 버팁니다" },
-  { value: 4, title: "4 적극형", description: "30% 정도까지는 버팁니다" },
-  { value: 5, title: "5 공격형", description: "반토막이 나도 기다립니다" },
-];
-
-export const RISK_LABELS = new Map(
-  RISK_LEVELS.map((item) => [item.value, item.title.replace(/^\d\s/, "")] as const)
-);
 
 const LONGEST_HORIZON = HORIZON_CHOICES[HORIZON_CHOICES.length - 1];
 
@@ -64,6 +38,7 @@ export function ProfilePanel({
   onChange: (patch: Partial<Profile>) => void;
 }) {
   const goalTotal = profile.goals.reduce((total, goal) => total + goal.amount, 0);
+  const dependents = profile.dependents;
 
   return (
     <div className="flex flex-col gap-4">
@@ -97,88 +72,43 @@ export function ProfilePanel({
                 onChange={(yearsToRetirement) => onChange({ yearsToRetirement })}
               />
             </Field>
-            <Field className="sm:col-span-2">
-              <FieldLabel>가족 구성</FieldLabel>
-              <Select
-                items={HOUSEHOLDS}
-                value={profile.household}
-                onValueChange={(household) => onChange({ household: String(household) })}
-              >
-                <SelectTrigger aria-label="가족 구성" className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    {HOUSEHOLDS.map((item) => (
-                      <SelectItem key={item.value} value={item.value}>
-                        {item.label}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </Field>
           </FieldGroup>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle>자녀</CardTitle>
+          <CardTitle>부양가족</CardTitle>
           <CardDescription>
-            부르는 이름과 나이를 적습니다. 학자금이 언제 필요한지를 가늠하는 데 씁니다.
+            내 벌이로 함께 사는 사람을 고릅니다. 은퇴까지 얼마를 모아야 하는지가 달라집니다.
           </CardDescription>
-          <CardAction className="text-sm font-semibold tabular-nums">
-            {profile.children.length}명
+          <CardAction className="text-sm font-semibold">
+            {describeDependents(dependents)}
           </CardAction>
         </CardHeader>
-        <CardContent className="flex flex-col gap-3">
-          {profile.children.map((child) => {
-            const replace = (patch: Partial<ChildEntry>) =>
-              onChange({
-                children: profile.children.map((item) =>
-                  item.id === child.id ? { ...item, ...patch } : item
-                ),
-              });
-
-            return (
-              <EntryRow
-                key={child.id}
-                name={child.name}
-                namePlaceholder="예: 막내"
-                onNameChange={(name) => replace({ name })}
-                onRemove={() =>
-                  onChange({
-                    children: profile.children.filter((item) => item.id !== child.id),
-                  })
-                }
-                second={
-                  <PlainNumberInput
-                    label="나이"
-                    placeholder="세"
-                    value={child.age}
-                    onChange={(age) => replace({ age })}
-                  />
-                }
-              />
-            );
-          })}
-          <Button
-            className="w-full border-dashed"
-            type="button"
+        <CardContent>
+          <ToggleGroup
+            aria-label="부양가족"
+            className="flex w-full flex-wrap"
+            multiple
+            value={dependents}
             variant="outline"
-            onClick={() =>
+            onValueChange={(value) =>
               onChange({
-                children: [
-                  ...profile.children,
-                  { id: nextId("child"), name: "", age: "" },
-                ],
+                dependents: normalizeDependents(dependents, value as DependentKey[]),
               })
             }
           >
-            <PlusIcon data-icon="inline-start" />
-            자녀 추가
-          </Button>
+            {DEPENDENT_CHOICES.map((choice) => (
+              <ToggleGroupItem
+                key={choice.value}
+                className="aria-pressed:border-primary aria-pressed:bg-primary aria-pressed:text-primary-foreground"
+                value={choice.value}
+              >
+                {choice.label}
+              </ToggleGroupItem>
+            ))}
+          </ToggleGroup>
         </CardContent>
       </Card>
 
@@ -295,21 +225,22 @@ export function ProfilePanel({
                 onChange({ riskLevel: Number(value) as RiskLevel })
               }
             >
-              {RISK_LEVELS.map((level) => (
+              {RISK_CHOICES.map((choice) => (
                 <FieldLabel
-                  key={level.value}
+                  key={choice.value}
                   className={cn(
                     "flex w-full cursor-pointer flex-col items-start gap-1 rounded-lg border p-3",
-                    profile.riskLevel === level.value && "border-primary bg-accent"
+                    profile.riskLevel === choice.value && "border-primary bg-accent"
                   )}
-                  htmlFor={`risk-${level.value}`}
                 >
                   <div className="flex items-center gap-2">
-                    <RadioGroupItem id={`risk-${level.value}`} value={String(level.value)} />
-                    <span className="text-sm font-semibold">{level.title}</span>
+                    <RadioGroupItem value={String(choice.value)} />
+                    <span className="text-sm font-semibold">
+                      {choice.value} {choice.name}
+                    </span>
                   </div>
                   <span className="text-xs leading-relaxed text-muted-foreground">
-                    {level.description}
+                    {choice.description}
                   </span>
                 </FieldLabel>
               ))}

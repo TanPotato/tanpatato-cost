@@ -29,19 +29,20 @@ export type GoalEntry = {
   yearsAway: string;
 };
 
-export type ChildEntry = {
-  id: string;
-  name: string;
-  age: string;
-};
+/** 부양가족. 자녀는 인원까지 하나의 값으로 고르므로 셋 중 하나만 함께 설 수 있다. */
+export type DependentKey =
+  | "spouse"
+  | "child-1"
+  | "child-2"
+  | "child-3plus"
+  | "parents";
 
 export type RiskLevel = 1 | 2 | 3 | 4 | 5;
 
 export type Profile = {
   age: string;
   yearsToRetirement: string;
-  household: string;
-  children: ChildEntry[];
+  dependents: DependentKey[];
   goals: GoalEntry[];
   /** 투자금을 묶어 둘 수 있는 햇수. 20은 20년 이상을 뜻한다. */
   horizonYears: number;

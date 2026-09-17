@@ -48,6 +48,27 @@ test("지난 기록을 불러온 뒤 항목을 더 넣어도 줄끼리 서로 �
   expect(screen.getByDisplayValue("아파트 관리비")).toBeInTheDocument();
 });
 
+test("지금 모양보다 오래된 기록을 불러와도 적어 둔 금액을 잃지 않는다", () => {
+  window.localStorage.setItem(
+    "tanpotato.finance-record.v1",
+    JSON.stringify({
+      incomes: [{ id: "income-1", name: "급여(세후)", amount: 4_000_000, cycle: "month" }],
+      expenses: [],
+      assets: [],
+      debts: [],
+      // 부양가족으로 합치기 전의 모양. dependents가 없다.
+      profile: { age: "48", yearsToRetirement: "12", household: "spouse", children: [] },
+    })
+  );
+
+  render(<FinanceRecordScreen />);
+
+  expect(within(surplusCell()).getByText("4,000,000원")).toBeInTheDocument();
+
+  fireEvent.click(screen.getByRole("tab", { name: "진단" }));
+  expect(screen.getByText("없음")).toBeInTheDocument();
+});
+
 test("아무것도 적지 않았으면 진단 대신 기록하러 가라고 안내한다", () => {
   render(<FinanceRecordScreen />);
 

@@ -29,8 +29,8 @@ import { cn } from "@/lib/utils";
 
 import { HORIZON_CHOICES } from "../diagnose";
 import { formatHorizon, formatNumber, formatPercent, formatWon } from "../format";
+import { describeDependents, describeRisk } from "../profile-options";
 import type { CycleKey, Diagnosis, FinanceRecord, Summary } from "../types";
-import { HOUSEHOLD_LABELS, RISK_LABELS } from "./profile-panel";
 
 const CYCLE_TEXT: Record<CycleKey, string> = {
   month: "매달",
@@ -73,7 +73,6 @@ export function DiagnosisPanel({
 
   const deficit = summary.monthlySurplus < 0;
   const topMonthly = diagnosis.rankedExpenses[0]?.monthlyAmount ?? 1;
-  const children = record.profile.children.filter((child) => child.name || child.age);
 
   return (
     <div className="flex flex-col gap-4">
@@ -238,28 +237,12 @@ export function DiagnosisPanel({
                 : "미입력"
             }
           />
-          <Fact
-            label="가족"
-            value={HOUSEHOLD_LABELS.get(record.profile.household) ?? "미입력"}
-          />
-          <Fact
-            label="자녀"
-            value={
-              children.length > 0
-                ? `${children.length}명 (${children
-                    .map((child) => (child.age ? `${child.age}세` : "나이 미입력"))
-                    .join(", ")})`
-                : "없음"
-            }
-          />
+          <Fact label="부양가족" value={describeDependents(record.profile.dependents)} />
           <Fact
             label="투자 기간"
             value={formatHorizon(record.profile.horizonYears, LONGEST_HORIZON)}
           />
-          <Fact
-            label="성향"
-            value={`${record.profile.riskLevel}단계 ${RISK_LABELS.get(record.profile.riskLevel) ?? ""}`}
-          />
+          <Fact label="성향" value={describeRisk(record.profile.riskLevel)} />
         </CardContent>
       </Card>
 

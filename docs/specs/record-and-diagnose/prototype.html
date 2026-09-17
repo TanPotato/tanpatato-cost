@@ -512,26 +512,16 @@
           <label for="p-retire">은퇴 예정까지 남은 기간(년)</label>
           <input id="p-retire" class="num" type="number" value="12" inputmode="numeric">
         </div>
-        <div class="field wide" data-component="Field">
-          <label for="p-family">가족 구성</label>
-          <select id="p-family">
-            <option>혼자 삽니다</option>
-            <option>배우자와 둘입니다</option>
-            <option selected>배우자와 자녀가 있습니다</option>
-            <option>자녀와 둘입니다</option>
-            <option>부모님을 부양합니다</option>
-          </select>
-        </div>
-        <div class="field wide" data-component="Field">
-          <div class="field-head">
-            <label>자녀</label>
-            <span class="card-note" id="child-count">0명</span>
-          </div>
-          <div class="row row-head"><span>부르는 이름</span><span>나이(세)</span><span></span><span></span></div>
-          <div class="rows" id="rows-child"></div>
-          <button class="btn quiet" type="button" data-add="child" data-component="Button">＋ 자녀 추가</button>
-        </div>
       </div>
+    </div>
+
+    <div class="card" data-component="Card">
+      <div class="card-head">
+        <h2 class="card-title">부양가족</h2>
+        <span class="card-sum" id="dependents-read">없음</span>
+      </div>
+      <p class="card-note">내 벌이로 함께 사는 사람을 고릅니다. 자녀 인원은 하나만 고를 수 있습니다.</p>
+      <div class="choice years" id="dependents-choice"></div>
     </div>
 
     <div class="card" data-component="Card">
@@ -779,10 +769,7 @@
     goal: [
       { name: '자녀 대학 등록금', amount: 40000000, years: 3 }
     ],
-    child: [
-      { name: '첫째', age: 18 },
-      { name: '둘째', age: 15 }
-    ]
+    dependents: ['spouse', 'child-2']
   };
   const BLANK = {
     income: [{ name: '급여(세후)', amount: 0, cycle: 'month' }],
@@ -791,7 +778,7 @@
       { name: '통신비', amount: 0, cycle: 'month' },
       { name: '식비·생활비', amount: 0, cycle: 'month' }
     ],
-    asset: [], debt: [], goal: [], child: []
+    asset: [], debt: [], goal: [], dependents: []
   };
 
   const clone = o => JSON.parse(JSON.stringify(o));
@@ -817,8 +804,7 @@
     expense: { host: 'rows-expense', placeholder: '예: 자동차세', third: 'cycle' },
     asset: { host: 'rows-asset', placeholder: '예: 개인연금', third: 'none' },
     debt: { host: 'rows-debt', placeholder: '예: 신용대출', third: 'rate' },
-    goal: { host: 'rows-goal', placeholder: '예: 차량 교체', third: 'years' },
-    child: { host: 'rows-child', placeholder: '예: 막내', second: 'age', third: 'none' }
+    goal: { host: 'rows-goal', placeholder: '예: 차량 교체', third: 'years' }
   };
 
   function drawRows(kind) {
@@ -933,6 +919,43 @@
 
   const riskLabel = { 1: '안정형', 2: '안정추구형', 3: '중립형', 4: '적극형', 5: '공격형' };
 
+  const DEPENDENT_CHOICES = [
+    { key: 'spouse', label: '배우자' },
+    { key: 'child-1', label: '자녀 1명' },
+    { key: 'child-2', label: '자녀 2명' },
+    { key: 'child-3plus', label: '자녀 3명 이상' },
+    { key: 'parents', label: '부모님' }
+  ];
+  const CHILD_KEYS = ['child-1', 'child-2', 'child-3plus'];
+  const dependentsChoice = document.getElementById('dependents-choice');
+  DEPENDENT_CHOICES.forEach(c => {
+    const label = document.createElement('label');
+    const input = document.createElement('input');
+    input.type = 'checkbox';
+    input.value = c.key;
+    input.checked = data.dependents.includes(c.key);
+    input.onchange = () => {
+      if (input.checked && CHILD_KEYS.includes(c.key)) {
+        CHILD_KEYS.filter(k => k !== c.key).forEach(k => {
+          const other = dependentsChoice.querySelector('input[value="' + k + '"]');
+          if (other) other.checked = false;
+          data.dependents = data.dependents.filter(d => d !== k);
+        });
+      }
+      data.dependents = input.checked
+        ? [...data.dependents.filter(d => d !== c.key), c.key]
+        : data.dependents.filter(d => d !== c.key);
+      data.dependents = DEPENDENT_CHOICES.filter(x => data.dependents.includes(x.key)).map(x => x.key);
+      recalc();
+    };
+    label.append(input, document.createTextNode(c.label));
+    dependentsChoice.append(label);
+  });
+  const dependentsText = () => {
+    const labels = DEPENDENT_CHOICES.filter(c => data.dependents.includes(c.key)).map(c => c.label);
+    return labels.length ? labels.join(', ') : '없음';
+  };
+
   const HORIZON_YEARS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20];
   const horizonChoice = document.getElementById('horizon-choice');
   HORIZON_YEARS.forEach(y => {
@@ -955,7 +978,7 @@
   const readProfile = () => ({
     age: document.getElementById('p-age').value,
     retire: document.getElementById('p-retire').value,
-    family: document.getElementById('p-family').value,
+
     risk: document.querySelector('input[name=risk]:checked')?.value
   });
 
@@ -979,7 +1002,7 @@
     document.getElementById('sum-asset').textContent = won(assets);
     document.getElementById('sum-debt').textContent = won(debts);
     document.getElementById('sum-goal').textContent = won(sumFlat(data.goal));
-    document.getElementById('child-count').textContent = data.child.length + '명';
+    document.getElementById('dependents-read').textContent = dependentsText();
     document.getElementById('horizon-read').textContent = horizonText();
 
     drawDiagnosis(inc, exp, net, assets, debts);
@@ -1085,15 +1108,10 @@
       notesHost.append(li);
     });
 
-    const kids = data.child.filter(c => c.name || c.age);
-    const kidText = kids.length
-      ? kids.length + '명 (' + kids.map(c => (c.age ? c.age + '세' : '나이 미입력')).join(', ') + ')'
-      : '없음';
     const facts = [
       ['나이', p.age ? p.age + '세' : '미입력'],
       ['은퇴까지', p.retire ? p.retire + '년' : '미입력'],
-      ['가족', p.family],
-      ['자녀', kidText],
+      ['부양가족', dependentsText()],
       ['투자 기간', horizonText()],
       ['성향', p.risk ? p.risk + '단계 ' + riskLabel[p.risk] : '미입력']
     ];
@@ -1109,7 +1127,7 @@
     });
   }
 
-  ['p-age', 'p-retire', 'p-family'].forEach(id => {
+  ['p-age', 'p-retire'].forEach(id => {
     const el = document.getElementById(id);
     el.addEventListener('input', recalc);
     el.addEventListener('change', recalc);

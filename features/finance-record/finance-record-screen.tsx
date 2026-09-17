@@ -287,7 +287,12 @@ export function FinanceRecordScreen() {
 
       {tab === "holdings" ? (
         <>
-          <HoldingsPanel />
+          <HoldingsPanel
+            recommended={allocation.lines.map((line) => ({
+              category: line.category,
+              percent: line.percent,
+            }))}
+          />
           <FooterActions back={{ label: "실행 안내로 돌아가기", onClick: () => setTab("execution") }} />
         </>
       ) : null}

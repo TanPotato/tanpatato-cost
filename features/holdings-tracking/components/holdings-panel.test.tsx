@@ -2,6 +2,13 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 
 import { HoldingsPanel } from "./holdings-panel";
+import type { RecommendedShare } from "@/features/rebalance-check";
+
+const RECOMMENDED: RecommendedShare[] = [
+  { category: "domestic-equity", percent: 15 },
+  { category: "overseas-equity", percent: 35 },
+  { category: "bond", percent: 50 },
+];
 
 function mockQuoteOnce(body: unknown, status = 200) {
   vi.mocked(fetch).mockResolvedValueOnce(new Response(JSON.stringify(body), { status }));
@@ -18,7 +25,7 @@ afterEach(() => {
 
 test("유효한 종목코드를 추가하면 종목명과 종가가 채워진 채로 목록에 나타난다", async () => {
   mockQuoteOnce({ ticker: "102110", name: "TIGER 200", price: 26520 });
-  render(<HoldingsPanel />);
+  render(<HoldingsPanel recommended={RECOMMENDED} />);
 
   fireEvent.change(screen.getByLabelText("종목코드"), { target: { value: "102110" } });
   fireEvent.click(screen.getByRole("button", { name: "추가" }));
@@ -28,7 +35,7 @@ test("유효한 종목코드를 추가하면 종목명과 종가가 채워진 �
 });
 
 test("6자리가 아닌 종목코드는 조회하지 않고 오류를 보여준다", async () => {
-  render(<HoldingsPanel />);
+  render(<HoldingsPanel recommended={RECOMMENDED} />);
 
   fireEvent.change(screen.getByLabelText("종목코드"), { target: { value: "123" } });
   fireEvent.click(screen.getByRole("button", { name: "추가" }));
@@ -39,7 +46,7 @@ test("6자리가 아닌 종목코드는 조회하지 않고 오류를 보여준�
 
 test("존재하지 않는 종목코드는 추가되지 않고 오류를 보여준다", async () => {
   mockQuoteOnce({ error: "not found" }, 404);
-  render(<HoldingsPanel />);
+  render(<HoldingsPanel recommended={RECOMMENDED} />);
 
   fireEvent.change(screen.getByLabelText("종목코드"), { target: { value: "999999" } });
   fireEvent.click(screen.getByRole("button", { name: "추가" }));
@@ -52,7 +59,7 @@ test("존재하지 않는 종목코드는 추가되지 않고 오류를 보여�
 
 test("수량과 매수단가를 입력하면 매입금액·평가금액·평가손익·수익률이 계산된다", async () => {
   mockQuoteOnce({ ticker: "102110", name: "TIGER 200", price: 55_000 });
-  render(<HoldingsPanel />);
+  render(<HoldingsPanel recommended={RECOMMENDED} />);
 
   fireEvent.change(screen.getByLabelText("종목코드"), { target: { value: "102110" } });
   fireEvent.click(screen.getByRole("button", { name: "추가" }));
@@ -71,7 +78,7 @@ test("수량과 매수단가를 입력하면 매입금액·평가금액·평가�
 test("새로고침을 누르면 등록된 모든 종목의 가격이 갱신되고, 일부 실패하면 실패 안내가 나온다", async () => {
   mockQuoteOnce({ ticker: "102110", name: "TIGER 200", price: 50_000 });
   mockQuoteOnce({ ticker: "360750", name: "TIGER 미국S&P500", price: 20_000 });
-  render(<HoldingsPanel />);
+  render(<HoldingsPanel recommended={RECOMMENDED} />);
 
   fireEvent.change(screen.getByLabelText("종목코드"), { target: { value: "102110" } });
   fireEvent.click(screen.getByRole("button", { name: "추가" }));
@@ -94,7 +101,7 @@ test("새로고침을 누르면 등록된 모든 종목의 가격이 갱신되�
 
 test("종목을 삭제할 수 있다", async () => {
   mockQuoteOnce({ ticker: "102110", name: "TIGER 200", price: 50_000 });
-  render(<HoldingsPanel />);
+  render(<HoldingsPanel recommended={RECOMMENDED} />);
 
   fireEvent.change(screen.getByLabelText("종목코드"), { target: { value: "102110" } });
   fireEvent.click(screen.getByRole("button", { name: "추가" }));
@@ -108,7 +115,7 @@ test("종목을 삭제할 수 있다", async () => {
 
 test("새로고침해도 등록한 종목과 수량이 그대로 남는다", async () => {
   mockQuoteOnce({ ticker: "102110", name: "TIGER 200", price: 50_000 });
-  const { unmount } = render(<HoldingsPanel />);
+  const { unmount } = render(<HoldingsPanel recommended={RECOMMENDED} />);
 
   fireEvent.change(screen.getByLabelText("종목코드"), { target: { value: "102110" } });
   fireEvent.click(screen.getByRole("button", { name: "추가" }));
@@ -116,7 +123,7 @@ test("새로고침해도 등록한 종목과 수량이 그대로 남는다", asy
   fireEvent.change(screen.getByLabelText("수량"), { target: { value: "3" } });
 
   unmount();
-  render(<HoldingsPanel />);
+  render(<HoldingsPanel recommended={RECOMMENDED} />);
 
   expect(await screen.findByText(/TIGER 200/)).toBeInTheDocument();
   expect(screen.getByLabelText("수량")).toHaveValue("3");

@@ -28,7 +28,7 @@ import {
 import { cn } from "@/lib/utils";
 
 import { HORIZON_CHOICES } from "../diagnose";
-import { formatHorizon, formatNumber, formatPercent, formatWon } from "../format";
+import { formatHorizon, formatNumber, formatPercent, formatWon } from "@/lib/format";
 import { describeDependents, describeRisk } from "../profile-options";
 import type { CycleKey, Diagnosis, FinanceRecord, Summary } from "../types";
 
@@ -245,10 +245,6 @@ export function DiagnosisPanel({
           <Fact label="성향" value={describeRisk(record.profile.riskLevel)} />
         </CardContent>
       </Card>
-
-      <p className="text-xs leading-relaxed text-muted-foreground">
-        이 숫자를 바탕으로 한 ETF 포트폴리오 추천과 실행 안내는 다음 단계입니다.
-      </p>
     </div>
   );
 }

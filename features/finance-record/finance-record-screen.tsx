@@ -12,13 +12,16 @@ import { CashflowPanel } from "./components/cashflow-panel";
 import { DiagnosisPanel } from "./components/diagnosis-panel";
 import { ProfilePanel } from "./components/profile-panel";
 import { SummaryStrip } from "./components/summary-strip";
-import { diagnose } from "./diagnose";
-import { formatWon } from "./format";
+import { HORIZON_CHOICES, diagnose } from "./diagnose";
+import { formatWon } from "@/lib/format";
+import { allocate, RecommendationPanel } from "@/features/portfolio-recommendation";
 import { startingRecord } from "./seed";
 import { loadRecord, saveRecord } from "./storage";
 import type { FinanceRecord, Profile } from "./types";
 
-type TabKey = "cashflow" | "balance" | "profile" | "diagnosis";
+type TabKey = "cashflow" | "balance" | "profile" | "diagnosis" | "recommendation";
+
+const LONGEST_HORIZON = HORIZON_CHOICES[HORIZON_CHOICES.length - 1];
 
 const TABS: { value: TabKey; label: string; accent: string }[] = [
   // TabsTrigger가 다크에서 자기 배경과 글자색을 따로 잡으므로 dark: 짝을 함께 준다.
@@ -46,6 +49,12 @@ const TABS: { value: TabKey; label: string; accent: string }[] = [
     accent:
       "hover:text-sec-4 data-active:bg-sec-4-soft data-active:text-sec-4 dark:data-active:bg-sec-4-soft dark:data-active:text-sec-4",
   },
+  {
+    value: "recommendation",
+    label: "추천",
+    accent:
+      "hover:text-sec-5 data-active:bg-sec-5-soft data-active:text-sec-5 dark:data-active:bg-sec-5-soft dark:data-active:text-sec-5",
+  },
 ];
 
 const HEADINGS: Record<TabKey, { title: string; lede: string }> = {
@@ -65,6 +74,10 @@ const HEADINGS: Record<TabKey, { title: string; lede: string }> = {
     title: "지금 내 상태",
     lede: "주기가 다른 항목을 모두 월 기준으로 환산해 계산했습니다.",
   },
+  recommendation: {
+    title: "추천 포트폴리오",
+    lede: "투자 성향과 투자 가능 기간을 근거로 종목과 비중을 계산했습니다.",
+  },
 };
 
 export function FinanceRecordScreen() {
@@ -78,6 +91,15 @@ export function FinanceRecordScreen() {
 
   const summary = useMemo(() => summarize(record), [record]);
   const diagnosis = useMemo(() => diagnose(record, summary), [record, summary]);
+  const allocation = useMemo(
+    () =>
+      allocate({
+        riskLevel: record.profile.riskLevel,
+        horizonYears: record.profile.horizonYears,
+        monthlySurplus: summary.monthlySurplus,
+      }),
+    [record.profile.riskLevel, record.profile.horizonYears, summary.monthlySurplus]
+  );
 
   function patch(next: Partial<FinanceRecord>) {
     setRecord((current) => ({ ...current, ...next }));
@@ -187,12 +209,32 @@ export function FinanceRecordScreen() {
       ) : null}
 
       {tab === "diagnosis" ? (
-        <DiagnosisPanel
-          diagnosis={diagnosis}
-          record={record}
-          summary={summary}
-          onGoToRecord={() => setTab("cashflow")}
-        />
+        <>
+          <DiagnosisPanel
+            diagnosis={diagnosis}
+            record={record}
+            summary={summary}
+            onGoToRecord={() => setTab("cashflow")}
+          />
+          {!summary.isBlank ? (
+            <FooterActions
+              back={{ label: "내 상황으로 돌아가기", onClick: () => setTab("profile") }}
+              next={{ label: "추천 보기", onClick: () => setTab("recommendation") }}
+            />
+          ) : null}
+        </>
+      ) : null}
+
+      {tab === "recommendation" ? (
+        <>
+          <RecommendationPanel
+            allocation={allocation}
+            riskLevel={record.profile.riskLevel}
+            horizonYears={record.profile.horizonYears}
+            longestHorizon={LONGEST_HORIZON}
+          />
+          <FooterActions back={{ label: "진단으로 돌아가기", onClick: () => setTab("diagnosis") }} />
+        </>
       ) : null}
     </div>
   );
@@ -204,7 +246,7 @@ function FooterActions({
   reset,
 }: {
   back?: { label: string; onClick: () => void };
-  next: { label: string; onClick: () => void };
+  next?: { label: string; onClick: () => void };
   reset?: () => void;
 }) {
   return (
@@ -220,9 +262,11 @@ function FooterActions({
         </Button>
       ) : null}
       <span className="flex-1" />
-      <Button type="button" onClick={next.onClick}>
-        {next.label}
-      </Button>
+      {next ? (
+        <Button type="button" onClick={next.onClick}>
+          {next.label}
+        </Button>
+      ) : null}
     </div>
   );
 }

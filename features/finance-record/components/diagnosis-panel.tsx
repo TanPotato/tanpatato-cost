@@ -30,6 +30,7 @@ import { cn } from "@/lib/utils";
 import { HORIZON_CHOICES } from "../diagnose";
 import { formatHorizon, formatNumber, formatPercent, formatWon } from "@/lib/format";
 import { describeDependents, describeRisk } from "../profile-options";
+import { TrendCard } from "@/features/net-worth-trend";
 import type { CycleKey, Diagnosis, FinanceRecord, Summary } from "../types";
 
 const CYCLE_TEXT: Record<CycleKey, string> = {
@@ -129,6 +130,8 @@ export function DiagnosisPanel({
           value={summary.hasBalanceRecord ? formatWon(summary.netWorth) : "기록 전"}
         />
       </dl>
+
+      <TrendCard hasBalanceRecord={summary.hasBalanceRecord} netWorth={summary.netWorth} />
 
       <Card>
         <CardHeader>

@@ -234,3 +234,24 @@ test("헤더의 내보내기·불러오기 버튼은 어느 탭에서도 보인�
   fireEvent.click(screen.getByRole("tab", { name: "실행" }));
   expect(screen.getByRole("button", { name: "내보내기" })).toBeInTheDocument();
 });
+
+test("자산을 적고 진단 탭을 열면 총자산 추이가 기록되고 지금 값이 보인다", () => {
+  render(<FinanceRecordScreen />);
+
+  // 진단 화면은 수입·지출을 하나도 안 적으면 통째로 안내로 바뀌므로, 총자산 추이 카드를
+  // 보려면 수입도 함께 적어야 한다.
+  fireEvent.change(screen.getAllByLabelText("금액")[0], { target: { value: "1000000" } });
+
+  fireEvent.click(screen.getByRole("tab", { name: "자산·부채" }));
+  const addAsset = screen.getByRole("button", { name: "자산 항목 추가" });
+  fireEvent.click(addAsset);
+  const amounts = screen.getAllByLabelText("평가금액");
+  fireEvent.change(amounts[amounts.length - 1], { target: { value: "3000000" } });
+
+  fireEvent.click(screen.getByRole("tab", { name: "진단" }));
+
+  expect(screen.getByText("총자산 추이")).toBeInTheDocument();
+  expect(screen.getByText("지금 총자산")).toBeInTheDocument();
+  // 순자산(자산-부채)과 총자산 추이의 지금 값이 같은 액수라 두 번 나타난다.
+  expect(screen.getAllByText("3,000,000원").length).toBeGreaterThanOrEqual(1);
+});

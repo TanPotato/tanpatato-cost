@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
@@ -10,7 +11,14 @@ import { loadCheckedSteps, saveCheckedSteps } from "../storage";
 import { buildSteps } from "../steps";
 import type { PurchaseTarget, StepId } from "../types";
 
-export function ExecutionPanel({ targets }: { targets: PurchaseTarget[] }) {
+export function ExecutionPanel({
+  targets,
+  onGoToHoldings,
+}: {
+  targets: PurchaseTarget[];
+  /** 여섯 단계를 모두 마쳤을 때 보유 종목 기록 화면으로 이어줄 콜백. 이 모듈은 그 화면을 모른다. */
+  onGoToHoldings?: () => void;
+}) {
   // 이 화면은 브라우저에서만 그려지므로 첫 렌더에서 곧바로 체크 상태를 읽는다.
   const [checked, setChecked] = useState<StepId[]>(() => loadCheckedSteps());
 
@@ -84,12 +92,14 @@ export function ExecutionPanel({ targets }: { targets: PurchaseTarget[] }) {
 
       {allDone ? (
         <Card>
-          <CardContent className="flex gap-3 py-4 text-sm leading-relaxed">
-            <span aria-hidden className="w-1 shrink-0 rounded-full bg-sec-6" />
-            <span>
-              여섯 단계를 모두 마쳤습니다. 실제로 산 종목과 수량을 기록하고 확인하는 기능은 다음
-              작업 단위에서 준비합니다.
-            </span>
+          <CardContent className="flex flex-wrap items-center gap-3 py-4 text-sm leading-relaxed">
+            <span aria-hidden className="w-1 shrink-0 self-stretch rounded-full bg-sec-6" />
+            <span className="flex-1">여섯 단계를 모두 마쳤습니다. 실제로 산 종목과 수량을 기록해 보세요.</span>
+            {onGoToHoldings ? (
+              <Button type="button" onClick={onGoToHoldings}>
+                보유 종목 기록하기
+              </Button>
+            ) : null}
           </CardContent>
         </Card>
       ) : null}

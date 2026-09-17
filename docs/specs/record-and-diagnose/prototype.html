@@ -1,0 +1,1147 @@
+<!--
+  prototype shell: the review chrome every prototype starts from.
+
+  Keep this comment in the prototype you grow from here: it is the contract,
+  and later turns work from that file rather than from this one.
+
+  Contract (extend product screens; keep the review shell):
+  - Product:  .sh-stage contains only end-user product UI. Keep review notes,
+               rationale, instructions, and approval controls in conversation.
+  - Screens:  <section data-screen="slug" data-title="Label"> inside .sh-stage.
+               The selector, arrow keys, and #hash routing build themselves.
+               Use one option per product destination or distinct surface,
+               named by its product role. Keep baselines, variants, comparison
+               labels, steps, indexes, and progress out of names and states.
+               Links may use href="#slug".
+  - States:   "Default" is automatic. A screen declares only representative
+               presets in data-states="Empty,Error". Use natural, screen-specific
+               names. Reserve presets for important multi-step results, forced
+               data or errors, or materially different structure; keep one-click
+               and transient states as interactions. Use data-when="Empty" on
+               preset-only elements. Call prototypeShell.setState("Name") on
+               entry and setState("Default") on exit, including when repeated
+               actions cross a preset condition.
+  - Viewport: "vp (m)" cycles full / 390 / 768. The 390 preset is a
+               fixed-height, internally scrolling phone frame. Start a
+               mobile-first prototype by adding class="sh-vp-390" to <body>
+               (or a bootstrap classList.add before the chrome script runs).
+  - Pinning:  keep in-frame bars (tab bars, CTAs) inside the phone with
+               position: sticky; position: fixed pins to the browser window.
+  - Tokens:   replace the project-tokens block with project tokens copied
+               verbatim. Map differing names to --background, --foreground, and
+               --font afterwards; replace network fonts with a system stack and
+               note that substitution. Without a design system, keep this
+               palette as the finished style. When the project ships dark
+               tokens, copy them under .sh-theme-dark, which the shell sets
+               on both the root element and body, so :root.sh-theme-dark and
+               body.sh-theme-dark work too. A .dark class or a
+               prefers-color-scheme media query copied verbatim would follow
+               the reviewer's system instead of the toggle.
+  - Theme:    the light / dark switch (t) changes the product surface only.
+               It appears only when a .sh-theme-dark rule declares dark tokens,
+               so a prototype without them carries no theme control. Prototypes
+               always load light; the review bar keeps its own dark styling in
+               both themes so it still reads as chrome.
+  - Placeholders: .wf-pic stands in for pictures the prototype has no real
+               files for. Use real text everywhere text belongs.
+
+  - Chrome:   Keep exactly the screen selector, selected-screen state selector,
+               viewport cycle, and theme toggle.
+
+  Self-contained by design: no build, no framework, no network.
+-->
+<meta charset="utf-8">
+<title>Prototype</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  /* ── project tokens: copied verbatim from app/globals.css ── */
+  :root {
+    --background: oklch(1 0 0);
+    --foreground: oklch(0.145 0 0);
+    --card: oklch(1 0 0);
+    --card-foreground: oklch(0.145 0 0);
+    --popover: oklch(1 0 0);
+    --popover-foreground: oklch(0.145 0 0);
+    --primary: oklch(0.205 0 0);
+    --primary-foreground: oklch(0.985 0 0);
+    --secondary: oklch(0.97 0 0);
+    --secondary-foreground: oklch(0.205 0 0);
+    --muted: oklch(0.97 0 0);
+    --muted-foreground: oklch(0.556 0 0);
+    --accent: oklch(0.97 0 0);
+    --accent-foreground: oklch(0.205 0 0);
+    --destructive: oklch(0.577 0.245 27.325);
+    --border: oklch(0.922 0 0);
+    --input: oklch(0.922 0 0);
+    --ring: oklch(0.708 0 0);
+    --chart-1: oklch(0.87 0 0);
+    --chart-2: oklch(0.556 0 0);
+    --chart-3: oklch(0.439 0 0);
+    --chart-4: oklch(0.371 0 0);
+    --chart-5: oklch(0.269 0 0);
+    --radius: 0.625rem;
+    --font: system-ui, -apple-system, "Segoe UI", "Malgun Gothic", sans-serif;
+    /* domain tokens added for this work unit: 수입 / 지출 구분 */
+    --income: oklch(0.52 0.108 205);
+    --income-soft: oklch(0.96 0.022 205);
+    --expense: oklch(0.56 0.135 55);
+    --expense-soft: oklch(0.965 0.03 65);
+    /* section tokens: 수입·지출 / 자산·부채 / 내 상황 / 진단 */
+    --sec-1: oklch(0.52 0.108 205); --sec-1-soft: oklch(0.955 0.024 205);
+    --sec-2: oklch(0.52 0.120 265); --sec-2-soft: oklch(0.955 0.024 265);
+    --sec-3: oklch(0.52 0.125 320); --sec-3-soft: oklch(0.955 0.024 320);
+    --sec-4: oklch(0.50 0.110 150); --sec-4-soft: oklch(0.955 0.024 150);
+  }
+  .sh-theme-dark {
+    --background: oklch(0.145 0 0);
+    --foreground: oklch(0.985 0 0);
+    --card: oklch(0.205 0 0);
+    --card-foreground: oklch(0.985 0 0);
+    --popover: oklch(0.205 0 0);
+    --popover-foreground: oklch(0.985 0 0);
+    --primary: oklch(0.922 0 0);
+    --primary-foreground: oklch(0.205 0 0);
+    --secondary: oklch(0.269 0 0);
+    --secondary-foreground: oklch(0.985 0 0);
+    --muted: oklch(0.269 0 0);
+    --muted-foreground: oklch(0.708 0 0);
+    --accent: oklch(0.269 0 0);
+    --accent-foreground: oklch(0.985 0 0);
+    --destructive: oklch(0.704 0.191 22.216);
+    --border: oklch(1 0 0 / 10%);
+    --input: oklch(1 0 0 / 15%);
+    --ring: oklch(0.556 0 0);
+    --chart-1: oklch(0.87 0 0);
+    --chart-2: oklch(0.556 0 0);
+    --chart-3: oklch(0.439 0 0);
+    --chart-4: oklch(0.371 0 0);
+    --chart-5: oklch(0.269 0 0);
+    --income: oklch(0.79 0.105 205);
+    --income-soft: oklch(0.295 0.038 205);
+    --expense: oklch(0.81 0.125 65);
+    --expense-soft: oklch(0.305 0.045 65);
+    --sec-1: oklch(0.80 0.100 205); --sec-1-soft: oklch(0.300 0.038 205);
+    --sec-2: oklch(0.79 0.110 265); --sec-2-soft: oklch(0.305 0.045 265);
+    --sec-3: oklch(0.80 0.110 320); --sec-3-soft: oklch(0.305 0.045 320);
+    --sec-4: oklch(0.79 0.100 150); --sec-4-soft: oklch(0.300 0.038 150);
+  }
+
+  /* ── review chrome (sh-*): keep; extend product styles elsewhere ── */
+  * { box-sizing: border-box }
+  body {
+    margin: 0; padding: 0 0 40px;
+    background: var(--background, #f6f6f6); color: var(--foreground, #3a3a3a);
+    font-family: var(--font, system-ui, sans-serif);
+  }
+  .sh-bar {
+    position: sticky; top: 0; z-index: 999;
+    display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+    padding: 8px 12px; background: #191a1c; color: #d7d7d7;
+    font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  .sh-bar b, .sh-control-label { color: #8a8f98; font-weight: 500 }
+  .sh-control { display: inline-flex; gap: 5px; align-items: center }
+  .sh-bar button {
+    border: 1px solid #3a3d42; background: none; color: inherit;
+    font: inherit; padding: 2px 9px; border-radius: 99px; cursor: pointer;
+  }
+  .sh-bar select {
+    width: 170px; border: 1px solid #3a3d42; background: #232428; color: inherit;
+    font: inherit; padding: 3px 28px 3px 9px; border-radius: 7px; cursor: pointer;
+    color-scheme: dark;
+  }
+  #sh-screen { width: 190px }
+  .sh-bar button.on { background: #d7d7d7; color: #191a1c; border-color: #d7d7d7 }
+  .sh-theme { display: inline-flex; border: 1px solid #3a3d42; border-radius: 99px; overflow: hidden }
+  .sh-theme button { border: 0; border-radius: 0; padding: 2px 10px }
+  .sh-spacer { flex: 1 }
+  .sh-stage { max-width: 960px; margin: 0 auto; padding: 12px 16px 0 }
+  [hidden] { display: none !important }
+
+  /* viewport presets */
+  .sh-vp-390 .sh-stage {
+    max-width: 390px; background: var(--background, #f6f6f6);
+    border: 10px solid #191a1c; border-radius: 28px;
+    padding: 16px 12px; height: min(844px, calc(100dvh - 52px));
+    overflow-y: auto; margin-top: 12px;
+  }
+  .sh-vp-768 .sh-stage {
+    max-width: 768px; border: 1px solid #c4c4c4; border-radius: 12px;
+    padding: 16px; margin-top: 12px;
+  }
+
+  /* placeholders */
+  .wf-pic  { border-radius: 4px; background:
+             repeating-linear-gradient(45deg, #e9e9e9, #e9e9e9 6px, #f2f2f2 6px, #f2f2f2 12px) }
+  .sh-theme-dark .wf-pic { background: repeating-linear-gradient(45deg,
+             color-mix(in srgb, var(--foreground) 16%, transparent) 0 6px,
+             color-mix(in srgb, var(--foreground) 8%, transparent) 6px 12px) }
+
+  /* ── product styles ── */
+  .app-head { padding: 4px 0 14px }
+  .app-name { font-size: 13px; letter-spacing: .01em; color: var(--muted-foreground); margin: 0 0 12px }
+  .tabs {
+    display: flex; gap: 4px; padding: 4px; background: var(--muted);
+    border-radius: calc(var(--radius) * 1.1); overflow-x: auto;
+  }
+  .tabs a {
+    flex: 1 1 auto; white-space: nowrap; text-align: center; text-decoration: none;
+    padding: 7px 12px; border-radius: var(--radius); font-size: 13.5px;
+    color: var(--muted-foreground);
+  }
+  .tabs a[aria-current="page"] { font-weight: 600; box-shadow: 0 1px 2px rgb(0 0 0 / .06) }
+  .tabs a:nth-child(1):hover { color: var(--sec-1) }
+  .tabs a:nth-child(2):hover { color: var(--sec-2) }
+  .tabs a:nth-child(3):hover { color: var(--sec-3) }
+  .tabs a:nth-child(4):hover { color: var(--sec-4) }
+  .tabs a:nth-child(1)[aria-current="page"] { background: var(--sec-1-soft); color: var(--sec-1) }
+  .tabs a:nth-child(2)[aria-current="page"] { background: var(--sec-2-soft); color: var(--sec-2) }
+  .tabs a:nth-child(3)[aria-current="page"] { background: var(--sec-3-soft); color: var(--sec-3) }
+  .tabs a:nth-child(4)[aria-current="page"] { background: var(--sec-4-soft); color: var(--sec-4) }
+
+  h1 { font-size: 22px; line-height: 1.35; margin: 20px 0 6px; letter-spacing: -.01em }
+  .lede { margin: 0 0 18px; color: var(--muted-foreground); font-size: 14px; line-height: 1.6; max-width: 62ch }
+
+  .card {
+    background: var(--card); color: var(--card-foreground);
+    border: 1px solid var(--border); border-radius: calc(var(--radius) * 1.2);
+    padding: 16px; margin-bottom: 16px;
+  }
+  .card-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 4px }
+  .card-title { font-size: 15px; font-weight: 600; margin: 0 }
+  .card-note { font-size: 12.5px; color: var(--muted-foreground); margin: 0 }
+  .card-sum { font-size: 14px; font-variant-numeric: tabular-nums; color: var(--foreground); font-weight: 600; white-space: nowrap }
+
+  /* running summary */
+  .running {
+    position: sticky; top: 45px; z-index: 5;
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px;
+    background: var(--border); border: 1px solid var(--border);
+    border-radius: calc(var(--radius) * 1.2); overflow: hidden; margin-bottom: 18px;
+  }
+  .sh-vp-390 .running { top: 0 }
+  .running > div { background: var(--card); padding: 11px 13px }
+  .running dt { font-size: 11.5px; color: var(--muted-foreground); margin: 0 0 3px }
+  .running dd { margin: 0; font-size: 17px; font-weight: 650; font-variant-numeric: tabular-nums; letter-spacing: -.02em }
+  .running .neg dd { color: var(--destructive) }
+
+  /* editable rows */
+  .rows { display: flex; flex-direction: column; gap: 6px; margin-top: 4px }
+  .row { display: grid; grid-template-columns: minmax(0,1fr) 128px 92px 32px; gap: 6px; align-items: center }
+  .row-head { font-size: 11.5px; color: var(--muted-foreground); padding: 12px 2px 0 }
+  .row-head span:nth-child(2), .row-head span:nth-child(3) { text-align: right }
+  .sh-vp-390 .row { grid-template-columns: minmax(0,1fr) 84px 32px; grid-template-areas: "name name del" "amt cyc cyc" }
+  .sh-vp-390 .row.solo { grid-template-areas: "name name del" "amt amt amt" }
+  .sh-vp-390 .row .f-name { grid-area: name }
+  .sh-vp-390 .row .f-amt { grid-area: amt }
+  .sh-vp-390 .row .f-cyc { grid-area: cyc }
+  .sh-vp-390 .row .f-del { grid-area: del }
+  .sh-vp-390 .row-head { display: none }
+  .sh-vp-390 .rows { gap: 14px; margin-top: 12px }
+
+  input, select {
+    width: 100%; font: inherit; font-size: 14px; color: var(--foreground);
+    background: var(--card); border: 1px solid var(--input);
+    border-radius: var(--radius); padding: 7px 10px; min-width: 0;
+  }
+  input:focus-visible, select:focus-visible { outline: 2px solid var(--ring); outline-offset: -1px }
+  input.num { text-align: right; font-variant-numeric: tabular-nums }
+  input::placeholder { color: var(--muted-foreground) }
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    font: inherit; font-size: 13.5px; border-radius: var(--radius); cursor: pointer;
+    padding: 8px 14px; border: 1px solid transparent;
+    background: var(--primary); color: var(--primary-foreground); text-decoration: none;
+  }
+  .btn.ghost { background: transparent; color: var(--foreground); border-color: var(--border) }
+  .btn.ghost:hover { background: var(--accent) }
+  .btn.quiet { background: transparent; color: var(--muted-foreground); border: 1px dashed var(--border); width: 100%; margin-top: 10px }
+  .btn.quiet:hover { color: var(--foreground); border-color: var(--ring) }
+  .btn.quiet.income { color: var(--income); border-color: var(--income); background: var(--income-soft) }
+  .btn.quiet.income:hover { border-style: solid }
+  .btn.quiet.expense { color: var(--expense); border-color: var(--expense); background: var(--expense-soft) }
+  .btn.quiet.expense:hover { border-style: solid }
+  .btn.icon { width: 32px; height: 32px; padding: 0; background: transparent; color: var(--muted-foreground); border-color: transparent; font-size: 16px; line-height: 1 }
+  .btn.icon:hover { background: var(--accent); color: var(--destructive) }
+
+  .actions { display: flex; gap: 10px; align-items: center; justify-content: flex-end; padding: 6px 0 28px }
+  .actions .spacer { flex: 1 }
+  .sh-vp-390 .actions { flex-wrap: wrap }
+
+  /* fields */
+  .fields { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 14px; margin-top: 14px }
+  .sh-vp-390 .fields { grid-template-columns: 1fr }
+  .field { display: flex; flex-direction: column; gap: 5px }
+  .field > label { font-size: 12.5px; color: var(--muted-foreground) }
+  .field.wide { grid-column: 1 / -1 }
+
+  .choice { display: flex; gap: 6px; flex-wrap: wrap }
+  .choice label {
+    position: relative; border: 1px solid var(--border); border-radius: 99px; padding: 6px 13px;
+    font-size: 13px; cursor: pointer; color: var(--muted-foreground);
+  }
+  .choice input { position: absolute; opacity: 0; width: 0; height: 0 }
+  .choice label:has(input:checked) { background: var(--primary); color: var(--primary-foreground); border-color: var(--primary) }
+  .choice label:has(input:focus-visible) { outline: 2px solid var(--ring); outline-offset: 2px }
+  .choice.years { margin-top: 14px }
+  .choice.years label { min-width: 58px; text-align: center; font-variant-numeric: tabular-nums }
+  .field-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px }
+
+  .scale { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-top: 14px }
+  .sh-vp-390 .scale { grid-template-columns: 1fr }
+  .scale label {
+    position: relative; border: 1px solid var(--border); border-radius: var(--radius); padding: 10px;
+    cursor: pointer; display: flex; flex-direction: column; gap: 3px;
+  }
+  .scale input { position: absolute; opacity: 0; width: 0; height: 0 }
+  .scale b { font-size: 13px; font-weight: 600 }
+  .scale span { font-size: 11.5px; color: var(--muted-foreground); line-height: 1.45 }
+  .scale label:has(input:checked) { border-color: var(--primary); background: var(--accent) }
+  .scale label:has(input:checked) span { color: var(--accent-foreground) }
+  .scale label:has(input:focus-visible) { outline: 2px solid var(--ring); outline-offset: 2px }
+  .scale-ends { display: flex; justify-content: space-between; font-size: 11.5px; color: var(--muted-foreground); margin-top: 6px }
+
+  /* diagnosis */
+  .hero { padding: 22px 18px 20px }
+  .hero dl { margin: 0 }
+  .hero dt { font-size: 13px; color: var(--muted-foreground); margin: 0 0 8px }
+  .hero dd { margin: 0; font-size: 42px; line-height: 1.15; font-weight: 700; letter-spacing: -.035em; font-variant-numeric: tabular-nums }
+  .sh-vp-390 .hero dd { font-size: 32px }
+  .hero .unit { font-size: 22px; font-weight: 600; margin-left: 2px }
+  .hero .sub { margin: 10px 0 0; font-size: 13px; color: var(--muted-foreground) }
+  .hero.neg dd { color: var(--destructive) }
+  .badge { display: inline-block; font-size: 12px; font-weight: 500; letter-spacing: 0; padding: 3px 9px; border-radius: 99px;
+    border: 1px solid var(--border); color: var(--muted-foreground); margin-left: 10px; vertical-align: middle }
+  .badge.warn { border-color: var(--destructive); color: var(--destructive) }
+
+  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--border);
+    border: 1px solid var(--border); border-radius: calc(var(--radius) * 1.2); overflow: hidden; margin-bottom: 16px }
+  .sh-vp-390 .kpis { grid-template-columns: repeat(2, 1fr) }
+  .kpis > div { background: var(--card); padding: 13px 14px }
+  .kpis dt { font-size: 11.5px; color: var(--muted-foreground); margin: 0 0 4px }
+  .kpis dd { margin: 0; font-size: 16px; font-weight: 650; font-variant-numeric: tabular-nums; letter-spacing: -.02em }
+  .kpis .aside { font-size: 11.5px; color: var(--muted-foreground); font-weight: 400; margin-top: 3px; line-height: 1.4 }
+
+  .bars { list-style: none; margin: 14px 0 0; padding: 0 }
+  .bars li { padding: 8px; margin: 0 -8px; border-radius: var(--radius) }
+  .bars li:hover { background: var(--accent) }
+  .bar-top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 6px }
+  .bar-name { font-size: 13.5px }
+  .bar-val { font-size: 13px; font-variant-numeric: tabular-nums; color: var(--muted-foreground); white-space: nowrap }
+  .bar-val b { color: var(--foreground); font-weight: 600 }
+  .track { height: 8px; background: var(--muted); border-radius: 4px; overflow: hidden }
+  .fill { height: 100%; background: var(--primary); border-radius: 4px }
+
+  .notes { list-style: none; margin: 14px 0 0; padding: 0; display: flex; flex-direction: column; gap: 12px }
+  .notes li { display: flex; gap: 10px; font-size: 13.5px; line-height: 1.6 }
+  .notes .mark { flex: none; width: 4px; border-radius: 3px; background: var(--border) }
+  .notes li.warn .mark { background: var(--destructive) }
+  .notes b { font-variant-numeric: tabular-nums }
+
+  .facts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px }
+  .facts span { font-size: 12.5px; border: 1px solid var(--border); border-radius: 99px; padding: 5px 11px; color: var(--muted-foreground) }
+  .facts span b { color: var(--foreground); font-weight: 600 }
+
+  .empty { text-align: center; padding: 48px 20px }
+  .empty h2 { font-size: 16px; margin: 0 0 8px }
+  .empty p { margin: 0 0 20px; color: var(--muted-foreground); font-size: 13.5px; line-height: 1.7 }
+
+  .foot { font-size: 12.5px; color: var(--muted-foreground); line-height: 1.6; padding: 2px 0 28px; margin: 0 }
+  table.plain { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 13px }
+  table.plain th, table.plain td { text-align: right; padding: 7px 4px; border-bottom: 1px solid var(--border); font-variant-numeric: tabular-nums }
+  table.plain th:first-child, table.plain td:first-child { text-align: left; font-variant-numeric: normal; font-weight: 400 }
+  table.plain thead th { font-size: 11.5px; color: var(--muted-foreground); font-weight: 500 }
+  details.table-view { margin-top: 16px }
+  details.table-view summary { font-size: 12.5px; color: var(--muted-foreground); cursor: pointer }
+
+  /* real narrow windows, for the "full" viewport preset */
+  @media (max-width: 720px) {
+    .kpis { grid-template-columns: repeat(2, 1fr) }
+    .hero dd { font-size: 34px }
+    .card-head { flex-wrap: wrap }
+  }
+  @media (max-width: 560px) {
+    .row { grid-template-columns: minmax(0,1fr) 84px 32px; grid-template-areas: "name name del" "amt cyc cyc" }
+    .row.solo { grid-template-areas: "name name del" "amt amt amt" }
+    .row .f-name { grid-area: name }
+    .row .f-amt { grid-area: amt }
+    .row .f-cyc { grid-area: cyc }
+    .row .f-del { grid-area: del }
+    .row-head { display: none }
+    .rows { gap: 14px; margin-top: 12px }
+    .fields { grid-template-columns: 1fr }
+    .scale { grid-template-columns: 1fr }
+    .actions { flex-wrap: wrap }
+  }
+</style>
+
+<header class="sh-bar">
+  <b>proto</b>
+  <label class="sh-control"><span class="sh-control-label">screen</span><select id="sh-screen"></select></label>
+  <span class="sh-spacer"></span>
+  <label class="sh-control"><span class="sh-control-label">state</span><select id="sh-state"></select></label>
+  <button id="sh-vp">vp: full (m)</button>
+  <div class="sh-theme" id="sh-theme" role="group" aria-label="theme (t)" hidden>
+    <button data-theme="light">light</button><button data-theme="dark">dark</button>
+  </div>
+</header>
+
+<main class="sh-stage">
+
+  <section data-screen="cashflow" data-title="수입·지출 기록" data-states="처음 시작">
+    <div class="app-head">
+      <p class="app-name">은퇴 대비 자산관리 Agent</p>
+      <nav class="tabs" data-component="Tabs">
+        <a href="#cashflow" aria-current="page">수입·지출</a>
+        <a href="#balance">자산·부채</a>
+        <a href="#profile">내 상황</a>
+        <a href="#diagnosis">진단</a>
+      </nav>
+    </div>
+
+    <h1>매달 들어오고 나가는 돈</h1>
+    <p class="lede">항목마다 주기를 고를 수 있습니다. 자동차 보험료나 재산세처럼 1년에 한두 번 나가는 돈도 그대로 적으면 월 기준으로 환산해 계산합니다.</p>
+
+    <dl class="running" data-component="Card">
+      <div><dt>월 수입</dt><dd id="cf-in">0원</dd></div>
+      <div><dt>월 지출</dt><dd id="cf-out">0원</dd></div>
+      <div id="cf-net-box"><dt>매달 남는 돈</dt><dd id="cf-net">0원</dd></div>
+    </dl>
+
+    <div class="card" data-component="Card">
+      <div class="card-head">
+        <h2 class="card-title">수입</h2>
+        <span class="card-sum" id="sum-income">0원 / 월</span>
+      </div>
+      <p class="card-note">급여, 이자, 배당, 임대료처럼 들어오는 돈을 모두 적습니다.</p>
+      <div class="row row-head"><span>항목</span><span>금액(원)</span><span>주기</span><span></span></div>
+      <div class="rows" id="rows-income"></div>
+      <button class="btn quiet income" type="button" data-add="income" data-component="Button">＋ 수입 항목 추가</button>
+    </div>
+
+    <div class="card" data-component="Card">
+      <div class="card-head">
+        <h2 class="card-title">지출</h2>
+        <span class="card-sum" id="sum-expense">0원 / 월</span>
+      </div>
+      <p class="card-note">대출이자, 관리비, 통신비, 생활비, 보험료, 세금까지 나가는 돈을 모두 적습니다.</p>
+      <div class="row row-head"><span>항목</span><span>금액(원)</span><span>주기</span><span></span></div>
+      <div class="rows" id="rows-expense"></div>
+      <button class="btn quiet expense" type="button" data-add="expense" data-component="Button">＋ 지출 항목 추가</button>
+    </div>
+
+    <div class="actions">
+      <button class="btn ghost" type="button" id="reset-all" data-component="Button">전부 지우고 다시 시작</button>
+      <span class="spacer"></span>
+      <a class="btn" href="#balance" data-component="Button">자산·부채 기록하기</a>
+    </div>
+  </section>
+
+  <section data-screen="balance" data-title="자산·부채 기록">
+    <div class="app-head">
+      <p class="app-name">은퇴 대비 자산관리 Agent</p>
+      <nav class="tabs" data-component="Tabs">
+        <a href="#cashflow">수입·지출</a>
+        <a href="#balance" aria-current="page">자산·부채</a>
+        <a href="#profile">내 상황</a>
+        <a href="#diagnosis">진단</a>
+      </nav>
+    </div>
+
+    <h1>이미 쌓여 있는 돈과 갚아야 할 돈</h1>
+    <p class="lede">비워 두어도 진단은 나옵니다. 적으면 순자산까지 함께 보여 드립니다.</p>
+
+    <dl class="running" data-component="Card">
+      <div><dt>자산 합계</dt><dd id="bs-assets">0원</dd></div>
+      <div><dt>부채 합계</dt><dd id="bs-debts">0원</dd></div>
+      <div><dt>순자산</dt><dd id="bs-net">0원</dd></div>
+    </dl>
+
+    <div class="card" data-component="Card">
+      <div class="card-head">
+        <h2 class="card-title">보유 자산</h2>
+        <span class="card-sum" id="sum-asset">0원</span>
+      </div>
+      <p class="card-note">예적금, 퇴직연금, 연금저축, 부동산, 이미 투자 중인 종목까지 적습니다.</p>
+      <div class="row row-head"><span>항목</span><span>평가금액(원)</span><span></span><span></span></div>
+      <div class="rows" id="rows-asset"></div>
+      <button class="btn quiet" type="button" data-add="asset" data-component="Button">＋ 자산 항목 추가</button>
+    </div>
+
+    <div class="card" data-component="Card">
+      <div class="card-head">
+        <h2 class="card-title">대출</h2>
+        <span class="card-sum" id="sum-debt">0원</span>
+      </div>
+      <p class="card-note">잔액과 금리를 함께 적으면 매달 나가는 이자가 어디서 오는지 이어서 볼 수 있습니다.</p>
+      <div class="row row-head"><span>항목</span><span>잔액(원)</span><span>금리(%)</span><span></span></div>
+      <div class="rows" id="rows-debt"></div>
+      <button class="btn quiet" type="button" data-add="debt" data-component="Button">＋ 대출 항목 추가</button>
+    </div>
+
+    <div class="actions">
+      <a class="btn ghost" href="#cashflow" data-component="Button">수입·지출로 돌아가기</a>
+      <span class="spacer"></span>
+      <a class="btn" href="#profile" data-component="Button">내 상황 입력하기</a>
+    </div>
+  </section>
+
+  <section data-screen="profile" data-title="내 상황">
+    <div class="app-head">
+      <p class="app-name">은퇴 대비 자산관리 Agent</p>
+      <nav class="tabs" data-component="Tabs">
+        <a href="#cashflow">수입·지출</a>
+        <a href="#balance">자산·부채</a>
+        <a href="#profile" aria-current="page">내 상황</a>
+        <a href="#diagnosis">진단</a>
+      </nav>
+    </div>
+
+    <h1>내 상황과 투자 성향</h1>
+    <p class="lede">같은 금액이라도 은퇴까지 남은 기간과 돈이 필요한 시점에 따라 맞는 투자가 달라집니다.</p>
+
+    <div class="card" data-component="Card">
+      <h2 class="card-title">기본 상황</h2>
+      <div class="fields">
+        <div class="field" data-component="Field">
+          <label for="p-age">나이</label>
+          <input id="p-age" class="num" type="number" value="48" inputmode="numeric">
+        </div>
+        <div class="field" data-component="Field">
+          <label for="p-retire">은퇴 예정까지 남은 기간(년)</label>
+          <input id="p-retire" class="num" type="number" value="12" inputmode="numeric">
+        </div>
+        <div class="field wide" data-component="Field">
+          <label for="p-family">가족 구성</label>
+          <select id="p-family">
+            <option>혼자 삽니다</option>
+            <option>배우자와 둘입니다</option>
+            <option selected>배우자와 자녀가 있습니다</option>
+            <option>자녀와 둘입니다</option>
+            <option>부모님을 부양합니다</option>
+          </select>
+        </div>
+        <div class="field wide" data-component="Field">
+          <div class="field-head">
+            <label>자녀</label>
+            <span class="card-note" id="child-count">0명</span>
+          </div>
+          <div class="row row-head"><span>부르는 이름</span><span>나이(세)</span><span></span><span></span></div>
+          <div class="rows" id="rows-child"></div>
+          <button class="btn quiet" type="button" data-add="child" data-component="Button">＋ 자녀 추가</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-component="Card">
+      <div class="card-head">
+        <h2 class="card-title">투자금을 묶어 둘 수 있는 기간</h2>
+        <span class="card-sum" id="horizon-read">7년</span>
+      </div>
+      <p class="card-note">이 돈에 손대지 않고 둘 수 있는 햇수를 고릅니다.</p>
+      <div class="choice years" id="horizon-choice"></div>
+    </div>
+
+    <div class="card" data-component="Card">
+      <div class="card-head">
+        <h2 class="card-title">예정된 목돈 지출</h2>
+        <span class="card-sum" id="sum-goal">0원</span>
+      </div>
+      <p class="card-note">자녀 학자금, 전세 보증금, 차량 교체처럼 미리 알고 있는 큰 지출을 적습니다.</p>
+      <div class="row row-head"><span>용도</span><span>금액(원)</span><span>몇 년 후</span><span></span></div>
+      <div class="rows" id="rows-goal"></div>
+      <button class="btn quiet" type="button" data-add="goal" data-component="Button">＋ 목돈 지출 추가</button>
+    </div>
+
+    <div class="card" data-component="Card">
+      <h2 class="card-title">투자 성향</h2>
+      <p class="card-note">원금이 한동안 줄어드는 것을 어디까지 견딜 수 있는지 고릅니다.</p>
+      <div class="scale">
+        <label><input type="radio" name="risk" value="1"><b>1 안정형</b><span>원금이 줄어드는 것은 못 견딥니다</span></label>
+        <label><input type="radio" name="risk" value="2"><b>2 안정추구형</b><span>5% 정도까지는 버팁니다</span></label>
+        <label><input type="radio" name="risk" value="3" checked><b>3 중립형</b><span>15% 정도까지는 버팁니다</span></label>
+        <label><input type="radio" name="risk" value="4"><b>4 적극형</b><span>30% 정도까지는 버팁니다</span></label>
+        <label><input type="radio" name="risk" value="5"><b>5 공격형</b><span>반토막이 나도 기다립니다</span></label>
+      </div>
+      <div class="scale-ends"><span>안정형</span><span>공격형</span></div>
+    </div>
+
+    <div class="actions">
+      <a class="btn ghost" href="#balance" data-component="Button">자산·부채로 돌아가기</a>
+      <span class="spacer"></span>
+      <a class="btn" href="#diagnosis" data-component="Button">진단 보기</a>
+    </div>
+  </section>
+
+  <section data-screen="diagnosis" data-title="진단" data-states="기록 전">
+    <div class="app-head">
+      <p class="app-name">은퇴 대비 자산관리 Agent</p>
+      <nav class="tabs" data-component="Tabs">
+        <a href="#cashflow">수입·지출</a>
+        <a href="#balance">자산·부채</a>
+        <a href="#profile">내 상황</a>
+        <a href="#diagnosis" aria-current="page">진단</a>
+      </nav>
+    </div>
+
+    <div data-when="기록 전" hidden>
+      <div class="card empty" data-component="Empty">
+        <h2>아직 진단할 것이 없습니다</h2>
+        <p>수입과 지출을 먼저 적어 주세요.<br>항목 몇 개만 적어도 매달 남는 돈이 바로 보입니다.</p>
+        <a class="btn" href="#cashflow" data-component="Button">수입·지출 기록하러 가기</a>
+      </div>
+    </div>
+
+    <div id="dx-body">
+      <h1>지금 내 상태</h1>
+      <p class="lede">주기가 다른 항목을 모두 월 기준으로 환산해 계산했습니다.</p>
+
+      <div class="card hero" id="dx-hero" data-component="Card">
+        <dl>
+          <dt>매달 남는 돈</dt>
+          <dd><span id="dx-net">0</span><span class="unit">원</span><span class="badge" id="dx-net-badge">투자에 쓸 수 있는 최대치</span></dd>
+        </dl>
+        <p class="sub" id="dx-net-sub"></p>
+      </div>
+
+      <dl class="kpis" data-component="Card">
+        <div><dt>월 수입</dt><dd id="dx-in">0원</dd><div class="aside" id="dx-in-aside">항목 0개</div></div>
+        <div><dt>월 지출</dt><dd id="dx-out">0원</dd><div class="aside" id="dx-out-aside">항목 0개</div></div>
+        <div><dt>저축률</dt><dd id="dx-rate">0%</dd><div class="aside">수입 대비 남는 비율</div></div>
+        <div><dt>순자산</dt><dd id="dx-worth">0원</dd><div class="aside" id="dx-worth-aside">자산 − 부채</div></div>
+      </dl>
+
+      <div class="card" data-component="Card">
+        <div class="card-head">
+          <h2 class="card-title">지출은 어디로 가고 있나</h2>
+          <span class="card-note">월 환산 기준, 큰 항목부터</span>
+        </div>
+        <ul class="bars" id="dx-bars"></ul>
+        <details class="table-view">
+          <summary>표로 보기</summary>
+          <table class="plain" data-component="Table">
+            <thead><tr><th>항목</th><th>입력값</th><th>주기</th><th>월 환산</th><th>비중</th></tr></thead>
+            <tbody id="dx-table"></tbody>
+          </table>
+        </details>
+      </div>
+
+      <div class="card" data-component="Card">
+        <h2 class="card-title">눈여겨볼 것</h2>
+        <ul class="notes" id="dx-notes"></ul>
+      </div>
+
+      <div class="card" data-component="Card">
+        <h2 class="card-title">진단에 반영된 내 상황</h2>
+        <div class="facts" id="dx-facts"></div>
+      </div>
+
+      <p class="foot">이 숫자를 바탕으로 한 ETF 포트폴리오 추천과 실행 안내는 다음 단계입니다.</p>
+    </div>
+  </section>
+
+</main>
+
+<script>
+  const stage = document.querySelector('.sh-stage');
+  const screens = [...stage.querySelectorAll('[data-screen]')];
+  const screenSelect = document.getElementById('sh-screen');
+  const stateSelect = document.getElementById('sh-state');
+  const vpBtn = document.getElementById('sh-vp');
+  const themeCtl = document.getElementById('sh-theme');
+  const themeBtns = [...themeCtl.querySelectorAll('button')];
+  let current = null;
+  let currentStates = [];
+
+  screens.forEach(s => {
+    const option = document.createElement('option');
+    option.textContent = s.dataset.title || s.dataset.screen;
+    option.value = s.dataset.screen;
+    screenSelect.append(option);
+  });
+  screenSelect.onchange = () => show(screenSelect.value);
+
+  function show(slug) {
+    current = screens.find(s => s.dataset.screen === slug) || screens[0];
+    screens.forEach(s => s.hidden = s !== current);
+    screenSelect.value = current.dataset.screen;
+    history.replaceState(null, '', '#' + current.dataset.screen);
+    buildStates();
+  }
+
+  function buildStates() {
+    const declared = (current.dataset.states || '').split(',').map(x => x.trim()).filter(Boolean);
+    currentStates = ['Default', ...declared.filter(name => name !== 'Default')];
+    stateSelect.innerHTML = '';
+    currentStates.forEach(name => {
+      const option = document.createElement('option');
+      option.textContent = name;
+      option.value = name;
+      stateSelect.append(option);
+    });
+    applyState('Default');
+  }
+
+  function applyState(name) {
+    const active = currentStates.includes(name) ? name : 'Default';
+    current.querySelectorAll('[data-when]').forEach(el => {
+      el.hidden = !el.dataset.when.split(',').map(x => x.trim()).includes(active);
+    });
+    stateSelect.value = active;
+  }
+  stateSelect.onchange = () => applyState(stateSelect.value);
+
+  window.prototypeShell = {
+    showScreen: show,
+    setState: applyState,
+    getScreen: () => current?.dataset.screen,
+    getState: () => stateSelect.value
+  };
+
+  const VPS = ['full', '390', '768'];
+  let vp = VPS.find(v => document.body.classList.contains('sh-vp-' + v)) || 'full';
+  function applyVp() {
+    VPS.forEach(v => document.body.classList.toggle('sh-vp-' + v, v === vp && v !== 'full'));
+    vpBtn.textContent = 'vp: ' + vp + ' (m)';
+    vpBtn.classList.toggle('on', vp !== 'full');
+  }
+  vpBtn.onclick = () => { vp = VPS[(VPS.indexOf(vp) + 1) % VPS.length]; applyVp(); };
+  applyVp();
+
+  const hasDark = [...document.styleSheets].some(sheet => {
+    try {
+      return [...sheet.cssRules].some(rule => (rule.selectorText || '')
+        .split(',').some(part => /\.sh-theme-dark$/.test(part.trim())));
+    } catch { return false }
+  });
+  let dark = false;
+  function applyTheme() {
+    document.documentElement.classList.toggle('sh-theme-dark', dark);
+    document.body.classList.toggle('sh-theme-dark', dark);
+    themeBtns.forEach(b => b.classList.toggle('on', (b.dataset.theme === 'dark') === dark));
+  }
+  themeCtl.hidden = !hasDark;
+  themeBtns.forEach(b => b.onclick = () => { dark = b.dataset.theme === 'dark'; applyTheme(); });
+  applyTheme();
+
+  addEventListener('keydown', e => {
+    if (/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
+    const i = screens.indexOf(current);
+    if (e.key === 'ArrowRight') show(screens[(i + 1) % screens.length].dataset.screen);
+    if (e.key === 'ArrowLeft') show(screens[(i - 1 + screens.length) % screens.length].dataset.screen);
+    if (e.key === 'm') vpBtn.click();
+    if (e.key === 't' && !themeCtl.hidden) { dark = !dark; applyTheme(); }
+  });
+
+  addEventListener('hashchange', () => show(location.hash.slice(1)));
+  show(location.hash.slice(1));
+</script>
+
+<script>
+  /* ── product behavior ── */
+  const CYCLES = [
+    { key: 'month', label: '매달', per: 1 },
+    { key: 'quarter', label: '분기', per: 1 / 3 },
+    { key: 'half', label: '반년', per: 1 / 6 },
+    { key: 'year', label: '1년', per: 1 / 12 }
+  ];
+  const cycleOf = k => CYCLES.find(c => c.key === k) || CYCLES[0];
+
+  const SEED = {
+    income: [
+      { name: '급여(세후)', amount: 4850000, cycle: 'month' },
+      { name: '배당금', amount: 320000, cycle: 'year' },
+      { name: '예금 이자', amount: 180000, cycle: 'year' }
+    ],
+    expense: [
+      { name: '주택담보대출 이자', amount: 780000, cycle: 'month' },
+      { name: '아파트 관리비', amount: 285000, cycle: 'month' },
+      { name: '통신비(4인)', amount: 168000, cycle: 'month' },
+      { name: '식비·생활비', amount: 1420000, cycle: 'month' },
+      { name: '자녀 학원비', amount: 950000, cycle: 'month' },
+      { name: '실손·종신보험료', amount: 395000, cycle: 'month' },
+      { name: '자동차 보험료', amount: 1180000, cycle: 'year' },
+      { name: '재산세', amount: 620000, cycle: 'year' },
+      { name: '자동차세', amount: 398000, cycle: 'half' }
+    ],
+    asset: [
+      { name: '아파트(시세)', amount: 640000000 },
+      { name: '퇴직연금 DC', amount: 87400000 },
+      { name: '연금저축펀드', amount: 31200000 },
+      { name: '정기예금', amount: 42000000 },
+      { name: '주택청약저축', amount: 8600000 }
+    ],
+    debt: [
+      { name: '주택담보대출', amount: 185000000, rate: 3.82 },
+      { name: '마이너스 통장', amount: 22000000, rate: 5.4 }
+    ],
+    goal: [
+      { name: '자녀 대학 등록금', amount: 40000000, years: 3 }
+    ],
+    child: [
+      { name: '첫째', age: 18 },
+      { name: '둘째', age: 15 }
+    ]
+  };
+  const BLANK = {
+    income: [{ name: '급여(세후)', amount: 0, cycle: 'month' }],
+    expense: [
+      { name: '아파트 관리비', amount: 0, cycle: 'month' },
+      { name: '통신비', amount: 0, cycle: 'month' },
+      { name: '식비·생활비', amount: 0, cycle: 'month' }
+    ],
+    asset: [], debt: [], goal: [], child: []
+  };
+
+  const clone = o => JSON.parse(JSON.stringify(o));
+  let data = clone(SEED);
+
+  /* 받침에 따라 "로 / 으로"를 고릅니다. */
+  const ro = word => {
+    const last = (word || '').trim().slice(-1);
+    const code = last.charCodeAt(0);
+    if (!last || code < 0xac00 || code > 0xd7a3) return '로';
+    const jong = (code - 0xac00) % 28;
+    return (jong === 0 || jong === 8) ? '로' : '으로';
+  };
+
+  const won = n => Math.round(n).toLocaleString('ko-KR') + '원';
+  const plain = n => Math.round(n).toLocaleString('ko-KR');
+  const monthly = r => (Number(r.amount) || 0) * cycleOf(r.cycle).per;
+  const sumMonthly = list => list.reduce((t, r) => t + monthly(r), 0);
+  const sumFlat = list => list.reduce((t, r) => t + (Number(r.amount) || 0), 0);
+
+  const KINDS = {
+    income: { host: 'rows-income', placeholder: '예: 임대 수입', third: 'cycle' },
+    expense: { host: 'rows-expense', placeholder: '예: 자동차세', third: 'cycle' },
+    asset: { host: 'rows-asset', placeholder: '예: 개인연금', third: 'none' },
+    debt: { host: 'rows-debt', placeholder: '예: 신용대출', third: 'rate' },
+    goal: { host: 'rows-goal', placeholder: '예: 차량 교체', third: 'years' },
+    child: { host: 'rows-child', placeholder: '예: 막내', second: 'age', third: 'none' }
+  };
+
+  function drawRows(kind) {
+    const conf = KINDS[kind];
+    const host = document.getElementById(conf.host);
+    host.innerHTML = '';
+    data[kind].forEach((row, i) => {
+      const el = document.createElement('div');
+      el.className = conf.third === 'none' ? 'row solo' : 'row';
+
+      const name = document.createElement('input');
+      name.className = 'f-name';
+      name.value = row.name;
+      name.placeholder = conf.placeholder;
+      name.setAttribute('aria-label', '항목 이름');
+      name.oninput = () => { row.name = name.value; recalc(); };
+
+      const amount = document.createElement('input');
+      amount.className = 'num f-amt';
+      amount.type = 'text';
+      amount.inputMode = 'numeric';
+      if (conf.second === 'age') {
+        amount.value = row.age ?? '';
+        amount.placeholder = '세';
+        amount.setAttribute('aria-label', '나이');
+        amount.oninput = () => {
+          amount.value = amount.value.replace(/[^0-9]/g, '').slice(0, 3);
+          row.age = amount.value;
+          recalc();
+        };
+      } else {
+        amount.value = row.amount ? plain(row.amount) : '';
+        amount.placeholder = '0';
+        amount.setAttribute('aria-label', '금액');
+        amount.oninput = () => {
+          const atEnd = amount.selectionStart === amount.value.length;
+          const digits = amount.value.replace(/[^0-9]/g, '');
+          row.amount = Number(digits || 0);
+          amount.value = digits ? plain(row.amount) : '';
+          if (atEnd) amount.setSelectionRange(amount.value.length, amount.value.length);
+          recalc();
+        };
+      }
+
+      let third;
+      if (conf.third === 'cycle') {
+        third = document.createElement('select');
+        third.className = 'f-cyc';
+        third.setAttribute('aria-label', '주기');
+        CYCLES.forEach(c => {
+          const o = document.createElement('option');
+          o.value = c.key; o.textContent = c.label;
+          third.append(o);
+        });
+        third.value = row.cycle || 'month';
+        third.onchange = () => { row.cycle = third.value; recalc(); };
+      } else if (conf.third === 'rate') {
+        third = document.createElement('input');
+        third.className = 'num f-cyc';
+        third.inputMode = 'decimal';
+        third.value = row.rate ?? '';
+        third.placeholder = '0.0';
+        third.setAttribute('aria-label', '금리');
+        third.oninput = () => { row.rate = third.value; recalc(); };
+      } else if (conf.third === 'years') {
+        third = document.createElement('input');
+        third.className = 'num f-cyc';
+        third.inputMode = 'numeric';
+        third.value = row.years ?? '';
+        third.placeholder = '년';
+        third.setAttribute('aria-label', '몇 년 후');
+        third.oninput = () => { row.years = third.value; recalc(); };
+      } else {
+        third = document.createElement('span');
+        third.className = 'f-cyc';
+      }
+
+      const del = document.createElement('button');
+      del.className = 'btn icon f-del';
+      del.type = 'button';
+      del.textContent = '×';
+      del.title = '이 항목 지우기';
+      del.setAttribute('aria-label', (row.name || '항목') + ' 지우기');
+      del.onclick = () => { data[kind].splice(i, 1); drawRows(kind); recalc(); };
+
+      el.append(name, amount, third, del);
+      host.append(el);
+    });
+  }
+
+  document.querySelectorAll('[data-add]').forEach(btn => {
+    btn.onclick = () => {
+      const kind = btn.dataset.add;
+      const row = { name: '', amount: 0 };
+      if (KINDS[kind].third === 'cycle') row.cycle = 'month';
+      if (KINDS[kind].third === 'rate') row.rate = '';
+      if (KINDS[kind].third === 'years') row.years = '';
+      if (KINDS[kind].second === 'age') row.age = '';
+      data[kind].push(row);
+      drawRows(kind);
+      recalc();
+      document.getElementById(KINDS[kind].host).lastElementChild?.querySelector('input')?.focus();
+    };
+  });
+
+  document.getElementById('reset-all').onclick = () => {
+    data = clone(BLANK);
+    Object.keys(KINDS).forEach(drawRows);
+    recalc();
+    syncDiagnosisState();
+  };
+
+  const riskLabel = { 1: '안정형', 2: '안정추구형', 3: '중립형', 4: '적극형', 5: '공격형' };
+
+  const HORIZON_YEARS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20];
+  const horizonChoice = document.getElementById('horizon-choice');
+  HORIZON_YEARS.forEach(y => {
+    const label = document.createElement('label');
+    const input = document.createElement('input');
+    input.type = 'radio';
+    input.name = 'horizon';
+    input.value = String(y);
+    if (y === 7) input.checked = true;
+    label.append(input, document.createTextNode(y === 20 ? '20년+' : y + '년'));
+    horizonChoice.append(label);
+  });
+  const horizonYears = () => Number(document.querySelector('input[name=horizon]:checked')?.value || 0);
+  const horizonText = () => {
+    const y = horizonYears();
+    if (!y) return '미입력';
+    return y === 20 ? '20년 이상' : y + '년';
+  };
+
+  const readProfile = () => ({
+    age: document.getElementById('p-age').value,
+    retire: document.getElementById('p-retire').value,
+    family: document.getElementById('p-family').value,
+    risk: document.querySelector('input[name=risk]:checked')?.value
+  });
+
+  function recalc() {
+    const inc = sumMonthly(data.income);
+    const exp = sumMonthly(data.expense);
+    const net = inc - exp;
+    const assets = sumFlat(data.asset);
+    const debts = sumFlat(data.debt);
+
+    document.getElementById('cf-in').textContent = won(inc);
+    document.getElementById('cf-out').textContent = won(exp);
+    document.getElementById('cf-net').textContent = won(net);
+    document.getElementById('cf-net-box').classList.toggle('neg', net < 0);
+    document.getElementById('sum-income').textContent = won(inc) + ' / 월';
+    document.getElementById('sum-expense').textContent = won(exp) + ' / 월';
+
+    document.getElementById('bs-assets').textContent = won(assets);
+    document.getElementById('bs-debts').textContent = won(debts);
+    document.getElementById('bs-net').textContent = won(assets - debts);
+    document.getElementById('sum-asset').textContent = won(assets);
+    document.getElementById('sum-debt').textContent = won(debts);
+    document.getElementById('sum-goal').textContent = won(sumFlat(data.goal));
+    document.getElementById('child-count').textContent = data.child.length + '명';
+    document.getElementById('horizon-read').textContent = horizonText();
+
+    drawDiagnosis(inc, exp, net, assets, debts);
+  }
+
+  function drawDiagnosis(inc, exp, net, assets, debts) {
+    document.getElementById('dx-net').textContent = plain(net);
+    document.getElementById('dx-hero').classList.toggle('neg', net < 0);
+    const badge = document.getElementById('dx-net-badge');
+    badge.textContent = net < 0 ? '매달 모자랍니다' : '투자에 쓸 수 있는 최대치';
+    badge.classList.toggle('warn', net < 0);
+    document.getElementById('dx-net-sub').textContent =
+      '월 수입 ' + won(inc) + '에서 월 지출 ' + won(exp) + '을 뺀 금액입니다.';
+
+    document.getElementById('dx-in').textContent = won(inc);
+    document.getElementById('dx-out').textContent = won(exp);
+    document.getElementById('dx-in-aside').textContent = '항목 ' + data.income.length + '개';
+    document.getElementById('dx-out-aside').textContent = '항목 ' + data.expense.length + '개';
+    document.getElementById('dx-rate').textContent = inc > 0 ? (net / inc * 100).toFixed(1) + '%' : '—';
+    document.getElementById('dx-worth').textContent = (assets || debts) ? won(assets - debts) : '기록 전';
+    document.getElementById('dx-worth-aside').textContent =
+      (assets || debts) ? '자산 ' + won(assets) + ' − 부채 ' + won(debts) : '자산·부채를 적으면 보입니다';
+
+    const ranked = data.expense
+      .map(r => ({ name: r.name || '이름 없는 항목', raw: Number(r.amount) || 0, cycle: cycleOf(r.cycle), month: monthly(r) }))
+      .filter(r => r.month > 0)
+      .sort((a, b) => b.month - a.month);
+    const top = ranked.length ? ranked[0].month : 1;
+
+    const bars = document.getElementById('dx-bars');
+    bars.innerHTML = '';
+    ranked.forEach(r => {
+      const li = document.createElement('li');
+      const share = exp > 0 ? (r.month / exp * 100) : 0;
+      li.innerHTML =
+        '<div class="bar-top"><span class="bar-name"></span>' +
+        '<span class="bar-val"><b></b> · <span class="pct"></span></span></div>' +
+        '<div class="track"><div class="fill"></div></div>';
+      li.querySelector('.bar-name').textContent = r.name;
+      li.querySelector('.bar-val b').textContent = won(r.month);
+      li.querySelector('.pct').textContent = share.toFixed(1) + '%';
+      li.querySelector('.fill').style.width = Math.max(2, r.month / top * 100) + '%';
+      li.title = r.name + ' · ' + won(r.month) + ' / 월 (' + share.toFixed(1) + '%)';
+      bars.append(li);
+    });
+
+    const table = document.getElementById('dx-table');
+    table.innerHTML = '';
+    ranked.forEach(r => {
+      const tr = document.createElement('tr');
+      const share = exp > 0 ? (r.month / exp * 100) : 0;
+      [r.name, won(r.raw), r.cycle.label, won(r.month), share.toFixed(1) + '%'].forEach((v, i) => {
+        const cell = document.createElement(i === 0 ? 'th' : 'td');
+        if (i === 0) cell.scope = 'row';
+        cell.textContent = v;
+        tr.append(cell);
+      });
+      table.append(tr);
+    });
+
+    const p = readProfile();
+    const irregular = data.expense.filter(r => r.cycle && r.cycle !== 'month' && Number(r.amount) > 0);
+    const irregularMonthly = sumMonthly(irregular);
+    const notes = [];
+
+    if (net >= 0) {
+      notes.push({ text: '매달 남는 <b>' + plain(net) + '원</b>이 투자에 쓸 수 있는 최대치입니다. 저축률은 ' +
+        (inc > 0 ? (net / inc * 100).toFixed(1) : '0') + '%입니다.' });
+    } else {
+      notes.push({ warn: true, text: '매달 <b>' + plain(Math.abs(net)) + '원</b>이 모자랍니다. 투자를 늘리기 전에 지출을 먼저 손봐야 합니다.' });
+    }
+
+    if (irregular.length) {
+      notes.push({ text: '1년에 한두 번 나가는 항목 <b>' + irregular.length + '건</b>을 월 <b>' + plain(irregularMonthly) +
+        '원</b>으로 환산해 반영했습니다. 이걸 빼고 보면 매달 남는 돈이 그만큼 많아 보입니다.' });
+    }
+
+    const hz = horizonYears();
+    data.goal
+      .filter(g => Number(g.years) > 0 && Number(g.amount) > 0 && (!hz || Number(g.years) <= hz))
+      .forEach(g => {
+        const label = g.name || '목돈 지출';
+        notes.push({ warn: true, text: '<b>' + g.years + '년 후</b> ' + label + ro(label) + ' <b>' + plain(g.amount) +
+          '원</b>이 필요합니다. 묶어 둘 수 있다고 하신 ' + horizonText() + ' 안에 써야 할 돈이니 따로 떼어 두어야 합니다.' });
+      });
+
+    data.debt
+      .filter(d => Number(d.rate) >= 5 && Number(d.amount) > 0)
+      .forEach(d => {
+        notes.push({ warn: true, text: (d.name || '대출') + ' 금리가 <b>' + d.rate + '%</b>입니다. 기대수익이 이보다 낮은 투자라면 먼저 갚는 쪽이 낫습니다.' });
+      });
+
+    if (!data.asset.length && !data.debt.length) {
+      notes.push({ text: '자산과 부채를 아직 적지 않으셨습니다. 적으면 순자산과 은퇴까지의 여유가 함께 보입니다.' });
+    }
+
+    const notesHost = document.getElementById('dx-notes');
+    notesHost.innerHTML = '';
+    notes.forEach(n => {
+      const li = document.createElement('li');
+      if (n.warn) li.className = 'warn';
+      li.innerHTML = '<span class="mark" aria-hidden="true"></span><span>' + n.text + '</span>';
+      notesHost.append(li);
+    });
+
+    const kids = data.child.filter(c => c.name || c.age);
+    const kidText = kids.length
+      ? kids.length + '명 (' + kids.map(c => (c.age ? c.age + '세' : '나이 미입력')).join(', ') + ')'
+      : '없음';
+    const facts = [
+      ['나이', p.age ? p.age + '세' : '미입력'],
+      ['은퇴까지', p.retire ? p.retire + '년' : '미입력'],
+      ['가족', p.family],
+      ['자녀', kidText],
+      ['투자 기간', horizonText()],
+      ['성향', p.risk ? p.risk + '단계 ' + riskLabel[p.risk] : '미입력']
+    ];
+    const factsHost = document.getElementById('dx-facts');
+    factsHost.innerHTML = '';
+    facts.forEach(([k, v]) => {
+      const span = document.createElement('span');
+      span.append(document.createTextNode(k + ' '));
+      const b = document.createElement('b');
+      b.textContent = v;
+      span.append(b);
+      factsHost.append(span);
+    });
+  }
+
+  ['p-age', 'p-retire', 'p-family'].forEach(id => {
+    const el = document.getElementById(id);
+    el.addEventListener('input', recalc);
+    el.addEventListener('change', recalc);
+  });
+  document.querySelectorAll('input[name=horizon], input[name=risk]')
+    .forEach(el => el.addEventListener('change', recalc));
+
+  const dxBody = document.getElementById('dx-body');
+  function syncDiagnosisState() {
+    const bare = sumMonthly(data.income) === 0 && sumMonthly(data.expense) === 0;
+    if (prototypeShell.getScreen() === 'diagnosis') {
+      prototypeShell.setState(bare ? '기록 전' : 'Default');
+    } else if (prototypeShell.getScreen() === 'cashflow') {
+      prototypeShell.setState(bare ? '처음 시작' : 'Default');
+    }
+    dxBody.hidden = bare;
+  }
+  ['change'].forEach(evt => {
+    document.getElementById('sh-screen').addEventListener(evt, syncDiagnosisState);
+    document.getElementById('sh-state').addEventListener(evt, () => {
+      if (prototypeShell.getScreen() === 'diagnosis') dxBody.hidden = prototypeShell.getState() === '기록 전';
+      if (prototypeShell.getScreen() === 'cashflow' && prototypeShell.getState() === '처음 시작') {
+        data = clone(BLANK);
+        Object.keys(KINDS).forEach(drawRows);
+        recalc();
+        dxBody.hidden = true;
+      }
+    });
+  });
+  addEventListener('hashchange', syncDiagnosisState);
+
+  Object.keys(KINDS).forEach(drawRows);
+  recalc();
+  syncDiagnosisState();
+</script>

@@ -5,6 +5,9 @@
 - 일반적인 UI는 설치된 shadcn Skill과 공식 shadcn/ui를 기본 구성 체계로 사용합니다. 필요한 UI를 직접 만들기 전에 공식 component와 Block을 먼저 찾습니다.
 - Button, Field, Card, Dialog, Tabs, Table, Empty, Alert, Skeleton처럼 이미 제공되는 일반 UI는 별도의 markup으로 다시 만들지 않습니다. 공식 component를 조합해도 해결되지 않는 요구만 직접 구현합니다.
 - 하나의 프로젝트에서는 preset, semantic token, typography, radius, spacing scale과 component variant를 하나의 시각 언어로 유지합니다. 일반 UI의 색상과 상태는 `background`, `foreground`, `primary`, `muted`, `destructive` 같은 semantic token으로 표현하고 화면마다 임의의 색상을 덮어쓰지 않습니다.
+- 여러 화면에서 반복되는 도메인 구분에 색이 필요하면 화면에 색을 직접 쓰지 않고 token을 추가합니다. 현재 추가된 것은 수입과 지출을 가르는 `--income` / `--expense`와 상단 탭의 네 구간을 가르는 `--sec-1`~`--sec-4`이며, 각각 배경용 `-soft` 짝을 함께 둡니다. 새 구분색이 필요하면 같은 방식으로 token을 늘립니다.
+- 색상 token은 라이트와 다크 값을 따로 정합니다. 밝기를 자동으로 뒤집으면 어두운 배경에서 읽히지 않습니다.
+- 색은 의미를 전달하는 유일한 수단이 될 수 없습니다. 적자나 경고처럼 상태를 가르는 곳에는 문구나 표식을 함께 둡니다. `--destructive`는 오류와 경고에만 쓰고 도메인 구분색으로 돌려쓰지 않습니다.
 - 같은 역할의 component는 같은 variant를 사용합니다. 반복되는 class 조합은 공통 variant나 project component로 올리고, 화면별 예외를 계속 추가하지 않습니다.
 - 반복되는 작업은 같은 composition으로 표현합니다. 검색과 필터, 폼 action, 목록과 상세 정보, 빈 상태와 오류 상태처럼 같은 의미의 UI가 화면마다 다른 구조와 동작을 사용하지 않습니다.
 - 페이지 레이아웃에는 공통 shell을 둡니다. content width, 좌우 gutter, section 간격과 header 위치를 shell에서 관리하고, 개별 화면은 자신의 주된 목적에 필요한 column과 content order만 결정합니다.
@@ -25,6 +28,8 @@
 일반 UI를 화면마다 다른 markup, 색상, spacing과 상태 표현으로 만들면 시각 언어가 잘게 나뉘고 접근성과 유지보수 비용이 커집니다. 반복되는 control과 composition은 shadcn의 검증된 기본값을 사용하고, 사용자 결과를 구별하는 표면에만 custom UI를 사용하면 일관성을 지키면서도 고유한 시각 정체성을 만들 수 있습니다.
 
 페이지 레이아웃을 하나의 고정된 모양으로 통일하면 구현은 쉽지만 사용자의 작업과 콘텐츠의 차이를 숨깁니다. 대신 component와 token의 문법을 통일하고, 레이아웃은 주된 목적과 정보 순서에 맞게 구성합니다.
+
+기본 palette가 무채색이라 도메인 구분에 쓸 색이 없습니다. 그렇다고 필요한 화면마다 색을 직접 쓰면 같은 구분이 화면마다 다른 색으로 나타납니다. 반복되는 구분을 token으로 올리면 색이 한곳에서 관리되고, 나중에 같은 구분이 다른 화면에 나타나도 같은 색을 씁니다.
 
 ## Reconsider when
 

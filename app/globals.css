@@ -23,6 +23,18 @@
   --color-chart-3: var(--chart-3);
   --color-chart-2: var(--chart-2);
   --color-chart-1: var(--chart-1);
+  --color-income: var(--income);
+  --color-income-soft: var(--income-soft);
+  --color-expense: var(--expense);
+  --color-expense-soft: var(--expense-soft);
+  --color-sec-1: var(--sec-1);
+  --color-sec-1-soft: var(--sec-1-soft);
+  --color-sec-2: var(--sec-2);
+  --color-sec-2-soft: var(--sec-2-soft);
+  --color-sec-3: var(--sec-3);
+  --color-sec-3-soft: var(--sec-3-soft);
+  --color-sec-4: var(--sec-4);
+  --color-sec-4-soft: var(--sec-4-soft);
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
@@ -81,6 +93,20 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+  /* 수입과 지출을 가르는 색. destructive는 경고에만 쓰므로 지출에 빨강을 쓰지 않는다. */
+  --income: oklch(0.52 0.108 205);
+  --income-soft: oklch(0.96 0.022 205);
+  --expense: oklch(0.56 0.135 55);
+  --expense-soft: oklch(0.965 0.03 65);
+  /* 상단 탭의 네 구간. 색상환에서 55도 이상 벌리고 밝기와 채도를 맞췄다. */
+  --sec-1: oklch(0.52 0.108 205);
+  --sec-1-soft: oklch(0.955 0.024 205);
+  --sec-2: oklch(0.52 0.12 265);
+  --sec-2-soft: oklch(0.955 0.024 265);
+  --sec-3: oklch(0.52 0.125 320);
+  --sec-3-soft: oklch(0.955 0.024 320);
+  --sec-4: oklch(0.5 0.11 150);
+  --sec-4-soft: oklch(0.955 0.024 150);
 }
 
 .dark {
@@ -115,6 +141,19 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+  /* 어두운 배경에서는 밝기를 따로 잡는다. 자동으로 뒤집으면 읽히지 않는다. */
+  --income: oklch(0.79 0.105 205);
+  --income-soft: oklch(0.295 0.038 205);
+  --expense: oklch(0.81 0.125 65);
+  --expense-soft: oklch(0.305 0.045 65);
+  --sec-1: oklch(0.8 0.1 205);
+  --sec-1-soft: oklch(0.3 0.038 205);
+  --sec-2: oklch(0.79 0.11 265);
+  --sec-2-soft: oklch(0.305 0.045 265);
+  --sec-3: oklch(0.8 0.11 320);
+  --sec-3-soft: oklch(0.305 0.045 320);
+  --sec-4: oklch(0.79 0.1 150);
+  --sec-4-soft: oklch(0.3 0.038 150);
 }
 
 @layer base {

@@ -1,5 +1,5 @@
 import { monthlyAmount } from "./calculate";
-import { formatHorizon, formatPercent, formatWon, withRo } from "./format";
+import { formatHorizon, formatPercent, formatWon, withRo } from "@/lib/format";
 import type { Diagnosis, FinanceRecord, Note, RankedExpense, Summary } from "./types";
 
 /** 이 금리를 넘는 대출은 투자보다 먼저 갚는 쪽이 유리할 수 있다고 짚는다. */

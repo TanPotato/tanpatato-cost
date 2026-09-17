@@ -13,7 +13,7 @@ import { DiagnosisPanel } from "./components/diagnosis-panel";
 import { ProfilePanel } from "./components/profile-panel";
 import { SummaryStrip } from "./components/summary-strip";
 import { diagnose } from "./diagnose";
-import { formatWon } from "./format";
+import { formatWon } from "@/lib/format";
 import { startingRecord } from "./seed";
 import { loadRecord, saveRecord } from "./storage";
 import type { FinanceRecord, Profile } from "./types";

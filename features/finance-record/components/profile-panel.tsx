@@ -17,7 +17,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { cn } from "@/lib/utils";
 
 import { HORIZON_CHOICES } from "../diagnose";
-import { formatHorizon, formatWon } from "../format";
+import { formatHorizon, formatWon } from "@/lib/format";
 import {
   DEPENDENT_CHOICES,
   RISK_CHOICES,

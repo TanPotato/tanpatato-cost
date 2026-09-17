@@ -12,7 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-import { formatWon } from "../format";
+import { formatWon } from "@/lib/format";
 import { nextId } from "../seed";
 import type { AssetEntry, DebtEntry } from "../types";
 import { AmountInput, EntryRow, PlainNumberInput } from "./entry-row";

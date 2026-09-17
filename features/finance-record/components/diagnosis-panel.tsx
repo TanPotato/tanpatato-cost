@@ -28,7 +28,7 @@ import {
 import { cn } from "@/lib/utils";
 
 import { HORIZON_CHOICES } from "../diagnose";
-import { formatHorizon, formatNumber, formatPercent, formatWon } from "../format";
+import { formatHorizon, formatNumber, formatPercent, formatWon } from "@/lib/format";
 import { describeDependents, describeRisk } from "../profile-options";
 import type { CycleKey, Diagnosis, FinanceRecord, Summary } from "../types";
 

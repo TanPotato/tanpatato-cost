@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
-import { formatWon } from "../format";
+import { formatWon } from "@/lib/format";
 import { nextId } from "../seed";
 import type { CycleKey, FlowEntry } from "../types";
 import { AmountInput, EntryRow } from "./entry-row";

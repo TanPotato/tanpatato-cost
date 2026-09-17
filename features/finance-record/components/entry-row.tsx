@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
-import { digitsOnly, formatNumber } from "../format";
+import { digitsOnly, formatNumber } from "@/lib/format";
 
 /**
  * 기록 화면의 모든 목록이 쓰는 한 줄. 좁은 화면에서는 이름과 삭제가 윗줄로,

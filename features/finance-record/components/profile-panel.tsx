@@ -78,6 +78,26 @@ export function ProfilePanel({
 
       <Card>
         <CardHeader>
+          <CardTitle>은퇴 목표 총자산</CardTitle>
+          <CardDescription>
+            은퇴 시점까지 모으고 싶은 총자산입니다. 진단 탭의 총자산 추이에서 지금 얼마나
+            왔는지 보여줍니다.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Field>
+            <FieldLabel htmlFor="profile-retirement-goal">은퇴 목표 총자산</FieldLabel>
+            <AmountInput
+              label="은퇴 목표 총자산"
+              value={profile.retirementGoalAmount}
+              onChange={(retirementGoalAmount) => onChange({ retirementGoalAmount })}
+            />
+          </Field>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
           <CardTitle>부양가족</CardTitle>
           <CardDescription>
             내 벌이로 함께 사는 사람을 고릅니다. 은퇴까지 얼마를 모아야 하는지가 달라집니다.

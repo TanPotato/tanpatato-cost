@@ -20,6 +20,7 @@ function blankProfile(): Profile {
     goals: [],
     horizonYears: 7,
     riskLevel: 3,
+    retirementGoalAmount: 0,
   };
 }
 

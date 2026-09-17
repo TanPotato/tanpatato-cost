@@ -255,3 +255,26 @@ test("자산을 적고 진단 탭을 열면 총자산 추이가 기록되고 지
   // 순자산(자산-부채)과 총자산 추이의 지금 값이 같은 액수라 두 번 나타난다.
   expect(screen.getAllByText("3,000,000원").length).toBeGreaterThanOrEqual(1);
 });
+
+test("내 상황 탭에서 은퇴 목표 총자산을 적으면 진단 탭에 진행률이 보인다", () => {
+  render(<FinanceRecordScreen />);
+
+  fireEvent.change(screen.getAllByLabelText("금액")[0], { target: { value: "1000000" } });
+
+  fireEvent.click(screen.getByRole("tab", { name: "자산·부채" }));
+  fireEvent.click(screen.getByRole("button", { name: "자산 항목 추가" }));
+  const balanceAmounts = screen.getAllByLabelText("평가금액");
+  fireEvent.change(balanceAmounts[balanceAmounts.length - 1], {
+    target: { value: "5000000" },
+  });
+
+  fireEvent.click(screen.getByRole("tab", { name: "내 상황" }));
+  fireEvent.change(screen.getByLabelText("은퇴 목표 총자산"), {
+    target: { value: "10000000" },
+  });
+
+  fireEvent.click(screen.getByRole("tab", { name: "진단" }));
+
+  expect(screen.getByText("은퇴 목표 달성률")).toBeInTheDocument();
+  expect(screen.getByText("50.0%")).toBeInTheDocument();
+});

@@ -52,6 +52,8 @@ export type Profile = {
   /** 투자금을 묶어 둘 수 있는 햇수. 20은 20년 이상을 뜻한다. */
   horizonYears: number;
   riskLevel: RiskLevel;
+  /** 은퇴 목표 총자산. GLOSSARY.md 참고 — GoalEntry의 "목표"와는 다른 개념이다. 0은 미설정이다. */
+  retirementGoalAmount: number;
 };
 
 export type FinanceRecord = {

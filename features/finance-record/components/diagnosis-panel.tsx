@@ -131,7 +131,15 @@ export function DiagnosisPanel({
         />
       </dl>
 
-      <TrendCard hasBalanceRecord={summary.hasBalanceRecord} netWorth={summary.netWorth} />
+      <TrendCard
+        hasBalanceRecord={summary.hasBalanceRecord}
+        monthlySurplus={summary.monthlySurplus}
+        netWorth={summary.netWorth}
+        retirementGoalAmount={record.profile.retirementGoalAmount}
+        yearsToRetirement={
+          record.profile.yearsToRetirement ? Number(record.profile.yearsToRetirement) : null
+        }
+      />
 
       <Card>
         <CardHeader>

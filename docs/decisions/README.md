@@ -4,3 +4,4 @@
 
 - [ui-composition](ui-composition.md) — Read when choosing UI components, page composition, visual tokens, or custom interface boundaries.
 - [etf-candidate-data](etf-candidate-data.md) — Read when adding, changing, or sourcing the ETF candidate list used for portfolio recommendations.
+- [quote-source](quote-source.md) — Read when fetching or displaying a price for an already-held security.

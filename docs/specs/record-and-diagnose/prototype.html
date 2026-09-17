@@ -924,9 +924,16 @@
     { key: 'child-1', label: '자녀 1명' },
     { key: 'child-2', label: '자녀 2명' },
     { key: 'child-3plus', label: '자녀 3명 이상' },
-    { key: 'parents', label: '부모님' }
+    { key: 'parent-1', label: '부모님 1명' },
+    { key: 'parent-2', label: '부모님 2명' }
   ];
-  const CHILD_KEYS = ['child-1', 'child-2', 'child-3plus'];
+  // 자녀와 부모님은 각각 인원을 나타내는 묶음이다. 부모님을 한 분만 부양하는지
+  // 두 분 다 부양하는지에 따라 부담 규모가 달라 "부모님" 하나로 뭉치지 않는다.
+  const COUNT_GROUPS = [
+    ['child-1', 'child-2', 'child-3plus'],
+    ['parent-1', 'parent-2']
+  ];
+  const groupOf = key => COUNT_GROUPS.find(g => g.includes(key));
   const dependentsChoice = document.getElementById('dependents-choice');
   DEPENDENT_CHOICES.forEach(c => {
     const label = document.createElement('label');
@@ -935,8 +942,9 @@
     input.value = c.key;
     input.checked = data.dependents.includes(c.key);
     input.onchange = () => {
-      if (input.checked && CHILD_KEYS.includes(c.key)) {
-        CHILD_KEYS.filter(k => k !== c.key).forEach(k => {
+      const group = groupOf(c.key);
+      if (input.checked && group) {
+        group.filter(k => k !== c.key).forEach(k => {
           const other = dependentsChoice.querySelector('input[value="' + k + '"]');
           if (other) other.checked = false;
           data.dependents = data.dependents.filter(d => d !== k);

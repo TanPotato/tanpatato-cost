@@ -6,24 +6,37 @@ export const DEPENDENT_CHOICES: { value: DependentKey; label: string }[] = [
   { value: "child-1", label: "자녀 1명" },
   { value: "child-2", label: "자녀 2명" },
   { value: "child-3plus", label: "자녀 3명 이상" },
-  { value: "parents", label: "부모님" },
+  { value: "parent-1", label: "부모님 1명" },
+  { value: "parent-2", label: "부모님 2명" },
 ];
 
-const CHILD_KEYS: DependentKey[] = ["child-1", "child-2", "child-3plus"];
+/**
+ * 인원을 나타내는 선택지 묶음. 자녀는 한 분만 부양하는지 두 분, 세 분 이상인지에
+ * 따라 부담 규모가 다르고, 부모님도 한 분과 두 분이 다르다. 그래서 "자녀"나
+ * "부모님" 하나로 뭉치지 않고 인원별로 나눈 뒤, 같은 묶음 안에서는 하나만
+ * 고를 수 있게 한다.
+ */
+const COUNT_GROUPS: DependentKey[][] = [
+  ["child-1", "child-2", "child-3plus"],
+  ["parent-1", "parent-2"],
+];
+
+function groupOf(key: DependentKey): DependentKey[] | undefined {
+  return COUNT_GROUPS.find((group) => group.includes(key));
+}
 
 /**
- * 자녀 인원은 셋 중 하나만 설 수 있다. 새로 고른 인원이 앞서 고른 인원을 밀어낸다.
+ * 같은 묶음에서 새로 고른 인원이 앞서 고른 인원을 밀어낸다.
  * 고른 순서와 상관없이 표시 순서는 선택지 순서로 맞춘다.
  */
 export function normalizeDependents(
   previous: DependentKey[],
   next: DependentKey[]
 ): DependentKey[] {
-  const addedChild = next.find(
-    (key) => CHILD_KEYS.includes(key) && !previous.includes(key)
-  );
-  const kept = addedChild
-    ? next.filter((key) => !CHILD_KEYS.includes(key) || key === addedChild)
+  const addedKey = next.find((key) => !previous.includes(key));
+  const addedGroup = addedKey ? groupOf(addedKey) : undefined;
+  const kept = addedGroup
+    ? next.filter((key) => !addedGroup.includes(key) || key === addedKey)
     : next;
 
   return DEPENDENT_CHOICES.filter((choice) => kept.includes(choice.value)).map(

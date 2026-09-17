@@ -29,13 +29,18 @@ export type GoalEntry = {
   yearsAway: string;
 };
 
-/** 부양가족. 자녀는 인원까지 하나의 값으로 고르므로 셋 중 하나만 함께 설 수 있다. */
+/**
+ * 부양가족. 자녀와 부모님은 인원까지 하나의 값으로 고른다. 부모님을 한 분만
+ * 부양하는지 두 분 다 부양하는지에 따라 부담 규모가 다르므로 "부모님" 하나로
+ * 뭉치지 않는다. 각 묶음 안에서는 하나만 함께 설 수 있다.
+ */
 export type DependentKey =
   | "spouse"
   | "child-1"
   | "child-2"
   | "child-3plus"
-  | "parents";
+  | "parent-1"
+  | "parent-2";
 
 export type RiskLevel = 1 | 2 | 3 | 4 | 5;
 

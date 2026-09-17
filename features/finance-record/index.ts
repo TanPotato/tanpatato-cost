@@ -10,6 +10,7 @@ export {
   normalizeDependents,
 } from "./profile-options";
 export { emptyRecord, startingRecord } from "./seed";
+export { loadRecord, saveRecord } from "./storage";
 export type {
   AssetEntry,
   CycleKey,

@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
-import { beforeEach, expect, test } from "vitest";
+import { beforeEach, expect, test, vi } from "vitest";
 
 import { FinanceRecordScreen } from "./finance-record-screen";
 import { emptyRecord } from "./seed";
@@ -157,4 +157,43 @@ test("매달 남는 돈이 0원 이하면 실행 탭의 매수 세 단계는 체
   fireEvent.click(screen.getByRole("tab", { name: "실행" }));
   expect(screen.getAllByRole("checkbox")).toHaveLength(3);
   expect(screen.getAllByText(/매달 남는 돈을 만들어/).length).toBeGreaterThanOrEqual(1);
+});
+
+test("실행 탭에서 여섯 단계를 모두 마치면 보유 탭으로 이동하는 버튼이 나오고, 눌러면 보유 탭이 열린다", () => {
+  render(<FinanceRecordScreen />);
+
+  const amounts = screen.getAllByLabelText("금액");
+  fireEvent.change(amounts[0], { target: { value: "3800000" } });
+
+  fireEvent.click(screen.getByRole("tab", { name: "실행" }));
+  for (const checkbox of screen.getAllByRole("checkbox")) {
+    fireEvent.click(checkbox);
+  }
+
+  const goToHoldings = screen.getByRole("button", { name: "보유 종목 기록하기" });
+  fireEvent.click(goToHoldings);
+
+  expect(
+    screen.getByRole("heading", { level: 1, name: "보유 종목" })
+  ).toBeInTheDocument();
+});
+
+test("보유 탭에서 종목코드를 적어 종목을 추가할 수 있다", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ ticker: "102110", name: "TIGER 200", price: 55000 }), {
+        status: 200,
+      })
+    )
+  );
+
+  render(<FinanceRecordScreen />);
+  fireEvent.click(screen.getByRole("tab", { name: "보유" }));
+
+  fireEvent.change(screen.getByLabelText("종목코드"), { target: { value: "102110" } });
+  fireEvent.click(screen.getByRole("button", { name: "추가" }));
+
+  expect(await screen.findByText(/TIGER 200/)).toBeInTheDocument();
+  vi.unstubAllGlobals();
 });

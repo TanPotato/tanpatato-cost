@@ -16,11 +16,19 @@ import { HORIZON_CHOICES, diagnose } from "./diagnose";
 import { formatWon } from "@/lib/format";
 import { allocate, RecommendationPanel } from "@/features/portfolio-recommendation";
 import { ExecutionPanel } from "@/features/execution-guide";
+import { HoldingsPanel } from "@/features/holdings-tracking";
 import { startingRecord } from "./seed";
 import { loadRecord, saveRecord } from "./storage";
 import type { FinanceRecord, Profile } from "./types";
 
-type TabKey = "cashflow" | "balance" | "profile" | "diagnosis" | "recommendation" | "execution";
+type TabKey =
+  | "cashflow"
+  | "balance"
+  | "profile"
+  | "diagnosis"
+  | "recommendation"
+  | "execution"
+  | "holdings";
 
 const LONGEST_HORIZON = HORIZON_CHOICES[HORIZON_CHOICES.length - 1];
 
@@ -62,6 +70,12 @@ const TABS: { value: TabKey; label: string; accent: string }[] = [
     accent:
       "hover:text-sec-6 data-active:bg-sec-6-soft data-active:text-sec-6 dark:data-active:bg-sec-6-soft dark:data-active:text-sec-6",
   },
+  {
+    value: "holdings",
+    label: "보유",
+    accent:
+      "hover:text-sec-7 data-active:bg-sec-7-soft data-active:text-sec-7 dark:data-active:bg-sec-7-soft dark:data-active:text-sec-7",
+  },
 ];
 
 const HEADINGS: Record<TabKey, { title: string; lede: string }> = {
@@ -88,6 +102,10 @@ const HEADINGS: Record<TabKey, { title: string; lede: string }> = {
   execution: {
     title: "실제로 사는 절차",
     lede: "체크한 단계는 브라우저에 저장되어 다시 열어도 그대로 남습니다.",
+  },
+  holdings: {
+    title: "보유 종목",
+    lede: "종목코드를 적으면 종목명과 전일 종가를 조회해 채웁니다. 수량과 매수단가는 직접 적습니다.",
   },
 };
 
@@ -259,10 +277,18 @@ export function FinanceRecordScreen() {
               name: line.name,
               amount: line.amount,
             }))}
+            onGoToHoldings={() => setTab("holdings")}
           />
           <FooterActions
             back={{ label: "추천으로 돌아가기", onClick: () => setTab("recommendation") }}
           />
+        </>
+      ) : null}
+
+      {tab === "holdings" ? (
+        <>
+          <HoldingsPanel />
+          <FooterActions back={{ label: "실행 안내로 돌아가기", onClick: () => setTab("execution") }} />
         </>
       ) : null}
     </div>

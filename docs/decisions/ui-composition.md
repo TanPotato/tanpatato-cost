@@ -5,7 +5,7 @@
 - 일반적인 UI는 설치된 shadcn Skill과 공식 shadcn/ui를 기본 구성 체계로 사용합니다. 필요한 UI를 직접 만들기 전에 공식 component와 Block을 먼저 찾습니다.
 - Button, Field, Card, Dialog, Tabs, Table, Empty, Alert, Skeleton처럼 이미 제공되는 일반 UI는 별도의 markup으로 다시 만들지 않습니다. 공식 component를 조합해도 해결되지 않는 요구만 직접 구현합니다.
 - 하나의 프로젝트에서는 preset, semantic token, typography, radius, spacing scale과 component variant를 하나의 시각 언어로 유지합니다. 일반 UI의 색상과 상태는 `background`, `foreground`, `primary`, `muted`, `destructive` 같은 semantic token으로 표현하고 화면마다 임의의 색상을 덮어쓰지 않습니다.
-- 여러 화면에서 반복되는 도메인 구분에 색이 필요하면 화면에 색을 직접 쓰지 않고 token을 추가합니다. 현재 추가된 것은 수입과 지출을 가르는 `--income` / `--expense`와 상단 탭의 네 구간을 가르는 `--sec-1`~`--sec-4`이며, 각각 배경용 `-soft` 짝을 함께 둡니다. 새 구분색이 필요하면 같은 방식으로 token을 늘립니다.
+- 여러 화면에서 반복되는 도메인 구분에 색이 필요하면 화면에 색을 직접 쓰지 않고 token을 추가합니다. 현재 추가된 것은 수입과 지출을 가르는 `--income` / `--expense`와 상단 탭의 구간을 가르는 `--sec-1`~`--sec-7`(탭이 늘 때마다 색상환에서 가장 넓게 벌어진 자리에 하나씩 추가)이며, 각각 배경용 `-soft` 짝을 함께 둡니다. 새 구분색이 필요하면 같은 방식으로 token을 늘립니다.
 - 색상 token은 라이트와 다크 값을 따로 정합니다. 밝기를 자동으로 뒤집으면 어두운 배경에서 읽히지 않습니다.
 - 색은 의미를 전달하는 유일한 수단이 될 수 없습니다. 적자나 경고처럼 상태를 가르는 곳에는 문구나 표식을 함께 둡니다. `--destructive`는 오류와 경고에만 쓰고 도메인 구분색으로 돌려쓰지 않습니다.
 - 같은 역할의 component는 같은 variant를 사용합니다. 반복되는 class 조합은 공통 variant나 project component로 올리고, 화면별 예외를 계속 추가하지 않습니다.

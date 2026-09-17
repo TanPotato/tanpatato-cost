@@ -112,3 +112,49 @@ test("매달 남는 돈이 0원 이하면 추천 비중은 그대로 나오고 �
   const amounts = screen.getAllByText("0원");
   expect(amounts.length).toBeGreaterThanOrEqual(3);
 });
+
+test("실행 탭은 여섯 단계를 체크리스트로 보여주고, 체크 상태는 새로 그려도 유지된다", () => {
+  const { unmount } = render(<FinanceRecordScreen />);
+
+  const amounts = screen.getAllByLabelText("금액");
+  fireEvent.change(amounts[0], { target: { value: "3800000" } });
+
+  fireEvent.click(screen.getByRole("tab", { name: "실행" }));
+  const checkboxes = screen.getAllByRole("checkbox");
+  expect(checkboxes).toHaveLength(6);
+
+  fireEvent.click(checkboxes[0]);
+  expect(checkboxes[0]).toBeChecked();
+
+  unmount();
+  render(<FinanceRecordScreen />);
+  fireEvent.click(screen.getByRole("tab", { name: "실행" }));
+  expect(screen.getAllByRole("checkbox")[0]).toBeChecked();
+});
+
+test("실행 탭에서 성향을 바꿔 금액이 달라져도 이미 체크한 단계는 풀리지 않는다", () => {
+  render(<FinanceRecordScreen />);
+
+  const amounts = screen.getAllByLabelText("금액");
+  fireEvent.change(amounts[0], { target: { value: "3800000" } });
+
+  fireEvent.click(screen.getByRole("tab", { name: "실행" }));
+  const checkboxes = screen.getAllByRole("checkbox");
+  fireEvent.click(checkboxes[checkboxes.length - 1]);
+  expect(checkboxes[checkboxes.length - 1]).toBeChecked();
+
+  fireEvent.click(screen.getByRole("tab", { name: "내 상황" }));
+  fireEvent.click(screen.getByRole("radio", { name: /5\s*공격형/ }));
+
+  fireEvent.click(screen.getByRole("tab", { name: "실행" }));
+  const afterChange = screen.getAllByRole("checkbox");
+  expect(afterChange[afterChange.length - 1]).toBeChecked();
+});
+
+test("매달 남는 돈이 0원 이하면 실행 탭의 매수 세 단계는 체크 대신 안내 문구다", () => {
+  render(<FinanceRecordScreen />);
+
+  fireEvent.click(screen.getByRole("tab", { name: "실행" }));
+  expect(screen.getAllByRole("checkbox")).toHaveLength(3);
+  expect(screen.getAllByText(/매달 남는 돈을 만들어/).length).toBeGreaterThanOrEqual(1);
+});

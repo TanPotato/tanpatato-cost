@@ -15,11 +15,12 @@ import { SummaryStrip } from "./components/summary-strip";
 import { HORIZON_CHOICES, diagnose } from "./diagnose";
 import { formatWon } from "@/lib/format";
 import { allocate, RecommendationPanel } from "@/features/portfolio-recommendation";
+import { ExecutionPanel } from "@/features/execution-guide";
 import { startingRecord } from "./seed";
 import { loadRecord, saveRecord } from "./storage";
 import type { FinanceRecord, Profile } from "./types";
 
-type TabKey = "cashflow" | "balance" | "profile" | "diagnosis" | "recommendation";
+type TabKey = "cashflow" | "balance" | "profile" | "diagnosis" | "recommendation" | "execution";
 
 const LONGEST_HORIZON = HORIZON_CHOICES[HORIZON_CHOICES.length - 1];
 
@@ -55,6 +56,12 @@ const TABS: { value: TabKey; label: string; accent: string }[] = [
     accent:
       "hover:text-sec-5 data-active:bg-sec-5-soft data-active:text-sec-5 dark:data-active:bg-sec-5-soft dark:data-active:text-sec-5",
   },
+  {
+    value: "execution",
+    label: "실행",
+    accent:
+      "hover:text-sec-6 data-active:bg-sec-6-soft data-active:text-sec-6 dark:data-active:bg-sec-6-soft dark:data-active:text-sec-6",
+  },
 ];
 
 const HEADINGS: Record<TabKey, { title: string; lede: string }> = {
@@ -77,6 +84,10 @@ const HEADINGS: Record<TabKey, { title: string; lede: string }> = {
   recommendation: {
     title: "추천 포트폴리오",
     lede: "투자 성향과 투자 가능 기간을 근거로 종목과 비중을 계산했습니다.",
+  },
+  execution: {
+    title: "실제로 사는 절차",
+    lede: "체크한 단계는 브라우저에 저장되어 다시 열어도 그대로 남습니다.",
   },
 };
 
@@ -233,7 +244,25 @@ export function FinanceRecordScreen() {
             horizonYears={record.profile.horizonYears}
             longestHorizon={LONGEST_HORIZON}
           />
-          <FooterActions back={{ label: "진단으로 돌아가기", onClick: () => setTab("diagnosis") }} />
+          <FooterActions
+            back={{ label: "진단으로 돌아가기", onClick: () => setTab("diagnosis") }}
+            next={{ label: "실행 안내 보기", onClick: () => setTab("execution") }}
+          />
+        </>
+      ) : null}
+
+      {tab === "execution" ? (
+        <>
+          <ExecutionPanel
+            targets={allocation.lines.map((line) => ({
+              category: line.category,
+              name: line.name,
+              amount: line.amount,
+            }))}
+          />
+          <FooterActions
+            back={{ label: "추천으로 돌아가기", onClick: () => setTab("recommendation") }}
+          />
         </>
       ) : null}
     </div>

@@ -197,3 +197,30 @@ test("보유 탭에서 종목코드를 적어 종목을 추가할 수 있다", a
   expect(await screen.findByText(/TIGER 200/)).toBeInTheDocument();
   vi.unstubAllGlobals();
 });
+
+test("보유 탭은 등록한 종목을 추천 비중과 비교해 카드로 보여준다", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ ticker: "102110", name: "TIGER 200", price: 50_000 }), {
+        status: 200,
+      })
+    )
+  );
+
+  render(<FinanceRecordScreen />);
+  fireEvent.click(screen.getByRole("tab", { name: "보유" }));
+
+  fireEvent.change(screen.getByLabelText("종목코드"), { target: { value: "102110" } });
+  fireEvent.click(screen.getByRole("button", { name: "추가" }));
+  await screen.findByText(/TIGER 200/);
+
+  fireEvent.change(screen.getByLabelText("수량"), { target: { value: "10" } });
+
+  // 기본 성향 3단계·7년은 국내 15%인데, 보유는 전부 국내주식형뿐이라 100% — 85%p 초과라 재조정 대상이다.
+  expect(await screen.findByText(/재조정을 고려해 보세요/)).toBeInTheDocument();
+  expect(screen.getByText("국내주식형")).toBeInTheDocument();
+  expect(screen.getByText("기타")).toBeInTheDocument();
+
+  vi.unstubAllGlobals();
+});

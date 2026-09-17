@@ -10,6 +10,8 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
 import { digitsOnly, formatNumber, formatPercent, formatWon } from "@/lib/format";
+import { RebalanceCard } from "@/features/rebalance-check";
+import type { RecommendedShare } from "@/features/rebalance-check";
 import { marketValue, profit, purchaseAmount, returnRate, summarize } from "../calculate";
 import { fetchQuote } from "../quote-client";
 import { loadHoldings, nextId, saveHoldings } from "../storage";
@@ -17,7 +19,7 @@ import type { Holding } from "../types";
 
 const TICKER_PATTERN = /^\d{6}$/;
 
-export function HoldingsPanel() {
+export function HoldingsPanel({ recommended }: { recommended: RecommendedShare[] }) {
   const [holdings, setHoldings] = useState<Holding[]>(() => loadHoldings());
   const [ticker, setTicker] = useState("");
   const [adding, setAdding] = useState(false);
@@ -176,6 +178,11 @@ export function HoldingsPanel() {
           )}
         </CardContent>
       </Card>
+
+      <RebalanceCard
+        holdings={holdings.map((h) => ({ ticker: h.ticker, marketValue: marketValue(h) }))}
+        recommended={recommended}
+      />
     </div>
   );
 }

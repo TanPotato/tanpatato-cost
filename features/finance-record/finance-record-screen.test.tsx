@@ -224,3 +224,13 @@ test("보유 탭은 등록한 종목을 추천 비중과 비교해 카드로 보
 
   vi.unstubAllGlobals();
 });
+
+test("헤더의 내보내기·불러오기 버튼은 어느 탭에서도 보인다", () => {
+  render(<FinanceRecordScreen />);
+
+  expect(screen.getByRole("button", { name: "내보내기" })).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "불러오기" })).toBeInTheDocument();
+
+  fireEvent.click(screen.getByRole("tab", { name: "실행" }));
+  expect(screen.getByRole("button", { name: "내보내기" })).toBeInTheDocument();
+});

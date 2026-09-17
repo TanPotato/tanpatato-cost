@@ -17,6 +17,7 @@ import { formatWon } from "@/lib/format";
 import { allocate, RecommendationPanel } from "@/features/portfolio-recommendation";
 import { ExecutionPanel } from "@/features/execution-guide";
 import { HoldingsPanel } from "@/features/holdings-tracking";
+import { BackupControls } from "@/features/data-backup";
 import { startingRecord } from "./seed";
 import { loadRecord, saveRecord } from "./storage";
 import type { FinanceRecord, Profile } from "./types";
@@ -144,7 +145,10 @@ export function FinanceRecordScreen() {
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-5 px-4 py-6 sm:px-6">
       <header className="flex flex-col gap-3">
-        <p className="text-sm text-muted-foreground">은퇴 대비 자산관리 Agent</p>
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-sm text-muted-foreground">은퇴 대비 자산관리 Agent</p>
+          <BackupControls />
+        </div>
         <Tabs value={tab} onValueChange={(value) => setTab(value as TabKey)}>
           <TabsList className="h-auto w-full">
             {TABS.map((item) => (
